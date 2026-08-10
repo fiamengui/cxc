@@ -6,8 +6,12 @@ import pg from "pg";
 import { loadConfig } from "./config.js";
 
 const config = loadConfig();
+const productionMigration = process.argv.includes("--production");
+if (productionMigration && (config.NODE_ENV !== "production" || config.DATABASE_SSL_MODE !== "verify-full" || !config.DATABASE_DIRECT_URL)) {
+  throw new Error("Migration de produção exige NODE_ENV=production, SSL verify-full e DATABASE_DIRECT_URL.");
+}
 const pool = new pg.Pool({
-  connectionString: config.DATABASE_URL,
+  connectionString: productionMigration ? config.DATABASE_DIRECT_URL : config.DATABASE_URL,
   max: 1,
   connectionTimeoutMillis: 10_000,
   ssl: config.DATABASE_SSL_MODE === "verify-full" ? { rejectUnauthorized: true } : undefined,
@@ -16,7 +20,7 @@ const client = await pool.connect();
 const migrationsDirectory = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "migrations");
 
 try {
-  await client.query("SELECT pg_advisory_lock(hashtext('caixa-no-controle-commercial-migrations'))");
+  await client.query("SELECT pg_advisory_lock(hashtext('caixasimples-bratec-commercial-migrations'))");
   await client.query("CREATE TABLE IF NOT EXISTS schema_migrations(name text PRIMARY KEY, sha256 text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())");
   const names = (await readdir(migrationsDirectory)).filter(name => /^\d+.*\.sql$/.test(name)).sort();
   for (const name of names) {
@@ -40,7 +44,7 @@ try {
     process.stdout.write(`Migration aplicada: ${name}\n`);
   }
 } finally {
-  await client.query("SELECT pg_advisory_unlock(hashtext('caixa-no-controle-commercial-migrations'))").catch(() => undefined);
+  await client.query("SELECT pg_advisory_unlock(hashtext('caixasimples-bratec-commercial-migrations'))").catch(() => undefined);
   client.release();
   await pool.end();
 }

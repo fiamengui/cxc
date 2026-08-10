@@ -8,12 +8,13 @@ import { EntitlementSigner, canonicalDeviceChallenge } from "../src/entitlement.
 import type { CheckoutInput, CheckoutResult, PaymentProvider } from "../src/payment-provider.js";
 import type { Challenge, CheckoutContext, CheckoutContextInput, CommercialRepository } from "../src/repository.js";
 import { CommercialService } from "../src/service.js";
-import type { ProviderSubscriptionSnapshot, SubscriptionRecord } from "../src/domain.js";
+import type { BetaAccessRecord, BetaStatus, ProviderSubscriptionSnapshot, SubscriptionRecord } from "../src/domain.js";
 
 class MemoryRepository implements CommercialRepository {
   subscription: SubscriptionRecord | null = null;
   installation: {id:string;publicKey:string;fingerprint:string;status:string}|null = null;
   nonceHash = ""; consumed = false; sequence = 0; entitlements = 0; snapshots = 0; lastSnapshot:ProviderSubscriptionSnapshot|null=null;
+  betaAccess:BetaAccessRecord[]=[]; betaSequence=0; betaEntitlements=0;
   async createCheckoutContext(input:CheckoutContextInput):Promise<CheckoutContext>{ const installationId=randomUUID(); const customerId=randomUUID(); this.installation={id:installationId,publicKey:input.devicePublicKey,fingerprint:input.deviceFingerprint,status:"ACTIVE"}; this.subscription={id:randomUUID(),customerId,installationId,planCode:input.plan.code,providerSubscriptionId:null,status:"PAYMENT_PENDING",currentPeriodStart:null,currentPeriodEnd:null}; return {subscription:this.subscription,customerEmail:input.email,installationCode:input.installationCode}; }
   async bindProviderSubscription(_id:string,providerId:string){ if(this.subscription)this.subscription.providerSubscriptionId=providerId; }
   async getSubscription(id:string){return this.subscription?.id===id?this.subscription:null;}
@@ -23,6 +24,14 @@ class MemoryRepository implements CommercialRepository {
   async applyProviderSnapshot(snapshot:ProviderSubscriptionSnapshot){this.snapshots++;this.lastSnapshot=snapshot;return{duplicate:false,subscription:this.subscription};}
   async nextEntitlementSequence(){return ++this.sequence;}
   async recordEntitlement(){this.entitlements++;}
+  async createBetaInvitation(input:{codeHash:string;email:string;notes:string|null;maxCustomers:number}){if(this.betaAccess.length>=input.maxCustomers)throw new Error("As vagas da beta gratuita do CaixaSimples - Bratec estão preenchidas no momento.");const access:BetaAccessRecord={id:randomUUID(),invitedEmail:input.email,status:"INVITED",customerId:null,installationId:null,installationCode:null,fingerprint:null,admittedAt:new Date(),activatedAt:null,clientVersion:null,lastActivityAt:null,adminNotes:input.notes};this.betaAccess.push(access);return{access,used:this.betaAccess.length};}
+  async betaCapacity(){return this.betaAccess.length;}
+  async listBetaAccess(){return this.betaAccess;}
+  async activateBeta(input:{codeHash:string;name:string;email:string;installationCode:string;devicePublicKey:string;fingerprint:string;clientVersion:string}){const access=this.betaAccess.find(item=>item.invitedEmail===input.email);if(!access)throw new Error("Convite beta inválido para este e-mail.");const installationId=randomUUID();const customerId=randomUUID();this.installation={id:installationId,publicKey:input.devicePublicKey,fingerprint:input.fingerprint,status:"ACTIVE"};Object.assign(access,{status:"ACTIVE",customerId,installationId,installationCode:input.installationCode,fingerprint:input.fingerprint,activatedAt:new Date(),lastActivityAt:new Date(),clientVersion:input.clientVersion});return access;}
+  async getBetaAccess(id:string){return this.betaAccess.find(item=>item.id===id)??null;}
+  async nextBetaEntitlementSequence(){return ++this.betaSequence;}
+  async recordBetaEntitlement(){this.betaEntitlements++;}
+  async updateBetaStatus(id:string,status:BetaStatus,notes:string|null){const access=this.betaAccess.find(item=>item.id===id);if(!access)return null;access.status=status;access.adminNotes=notes;return access;}
 }
 
 class FakeProvider implements PaymentProvider {
@@ -33,10 +42,10 @@ class FakeProvider implements PaymentProvider {
   async processWebhook(){if(!this.snapshot)throw new Error("missing snapshot");return this.snapshot;}
 }
 
-function fixture(){
+function fixture(beta=false){
   const keys=generateKeyPairSync("ed25519"); const path=join(tmpdir(),`cnc-entitlement-${randomUUID()}.pem`); writeFileSync(path,keys.privateKey.export({format:"pem",type:"pkcs8"}));
   const repository=new MemoryRepository(); const provider=new FakeProvider(); const signer=new EntitlementSigner({ENTITLEMENT_PRIVATE_KEY_PATH:path,ENTITLEMENT_KEY_ID:"test-key"});
-  return{keys,repository,provider,service:new CommercialService(repository,provider,signer,"test-key",()=>new Date("2026-08-07T12:00:00.000Z"))};
+  return{keys,repository,provider,service:new CommercialService(repository,provider,signer,"test-key",()=>new Date("2026-08-07T12:00:00.000Z"),{enabled:beta,maxCustomers:5,invitePepper:"test-invite-pepper-with-32-characters"})};
 }
 const identity=(publicKey:Buffer)=>({devicePublicKey:publicKey.toString("base64"),deviceFingerprint:createHash("sha256").update(publicKey).digest("hex")});
 
@@ -53,3 +62,7 @@ test("pagamento aprovado cria período mensal e falha posterior respeita a toler
 test("renovação mensal aprovada abre o período seguinte",async()=>{const f=fixture();await f.service.createCheckout({name:"Cliente",email:"cliente@example.com",document:null,installationCode:"CNC-ABCD-EFGH-IJKL",...identity(Buffer.alloc(32,4)),planCode:"ESSENTIAL_MONTHLY"});f.repository.subscription!.status="ACTIVE";f.repository.subscription!.currentPeriodStart=new Date("2026-08-07T12:00:00Z");f.repository.subscription!.currentPeriodEnd=new Date("2026-09-07T12:00:00Z");f.provider.snapshot={providerEventId:"event-renewal",providerSubscriptionId:"provider-1",externalReference:f.repository.subscription!.id,status:"ACTIVE",amountCents:990,currentPeriodStart:null,currentPeriodEnd:null,paidAt:new Date("2026-09-07T12:00:00Z"),providerPaymentId:"payment-renewal",eventType:"payment"};await f.service.processWebhook({xSignature:"x",xRequestId:"r",dataId:"3",body:{}});assert.equal(f.repository.lastSnapshot?.status,"ACTIVE");assert.equal(f.repository.lastSnapshot?.currentPeriodStart?.toISOString(),"2026-09-07T12:00:00.000Z");assert.equal(f.repository.lastSnapshot?.currentPeriodEnd?.toISOString(),"2026-10-07T12:00:00.000Z");});
 
 test("reembolso e chargeback revogam o direito de uso",async()=>{for(const [index,eventType] of ["refund","chargeback"].entries()){const f=fixture();await f.service.createCheckout({name:"Cliente",email:"cliente@example.com",document:null,installationCode:`CNC-ABCD-EFGH-IJK${index}`,...identity(Buffer.alloc(32,5+index)),planCode:"ESSENTIAL_MONTHLY"});f.repository.subscription!.status="ACTIVE";f.repository.subscription!.currentPeriodStart=new Date("2026-08-07T12:00:00Z");f.repository.subscription!.currentPeriodEnd=new Date("2026-09-07T12:00:00Z");f.provider.snapshot={providerEventId:`event-${eventType}`,providerSubscriptionId:"provider-1",externalReference:f.repository.subscription!.id,status:"REFUNDED",amountCents:990,currentPeriodStart:null,currentPeriodEnd:null,paidAt:new Date("2026-08-07T12:00:00Z"),providerPaymentId:`payment-${eventType}`,eventType};await f.service.processWebhook({xSignature:"x",xRequestId:"r",dataId:String(index),body:{}});assert.equal(f.repository.lastSnapshot?.status,"REFUNDED")}});
+
+test("beta reserva no máximo cinco vagas sem reabertura automática",async()=>{const f=fixture(true);for(let index=0;index<5;index++){const invitation=await f.service.createBetaInvitation({email:`beta${index}@example.com`,notes:null});assert.equal(invitation.slots.used,index+1)}await assert.rejects(()=>f.service.createBetaInvitation({email:"beta5@example.com",notes:null}),/vagas da beta/);await f.service.updateBetaStatus(f.repository.betaAccess[0]!.id,"CLOSED",null);await assert.rejects(()=>f.service.createBetaInvitation({email:"beta6@example.com",notes:null}),/vagas da beta/);});
+
+test("convite beta emite entitlement identificado e revogável",async()=>{const f=fixture(true);const device=generateKeyPairSync("ed25519");const raw=device.publicKey.export({format:"der",type:"spki"}).subarray(-32);const invitation=await f.service.createBetaInvitation({email:"beta@example.com",notes:"piloto"});const activated=await f.service.activateBeta({code:invitation.code,name:"Cliente Beta",email:"beta@example.com",installationCode:"CNC-BETA-TEST-0001",...identity(raw),clientVersion:"1.2.0-beta.1"});assert.equal(activated.entitlement.payload.edition,"BETA");assert.equal(activated.entitlement.payload.planCode,"BETA");assert.equal(activated.entitlement.payload.subscriptionStatus,"BETA_ACTIVE");assert.equal(f.repository.betaEntitlements,1);await f.service.updateBetaStatus(activated.betaAccessId,"SUSPENDED","suporte");const requestId="request-beta-123";const challenge=await f.service.createChallenge("CNC-BETA-TEST-0001","entitlement.refresh",requestId);const input={installationCode:"CNC-BETA-TEST-0001",subscriptionId:activated.betaAccessId,challengeId:challenge.challengeId,nonce:challenge.nonce,requestId,timestamp:"2026-08-07T12:00:00.000Z",action:"entitlement.refresh"};const signature=sign(null,Buffer.from(canonicalDeviceChallenge(input)),device.privateKey).toString("base64");await assert.rejects(()=>f.service.refreshEntitlement({...input,signature}),/sem direito de uso ativo/);});

@@ -1,6 +1,6 @@
 # Aceite técnico — Fase 7
 
-**Produto:** Caixa no Controle — Essencial 1.0  
+**Produto:** CaixaSimples - Bratec — Essencial 1.0
 **Data:** 05/08/2026  
 **Resultado:** aprovado — Fase 7 concluída em 100%
 
@@ -54,9 +54,9 @@
 
 | Artefato | Tamanho | SHA-256 |
 | --- | ---: | --- |
-| `caixa-no-controle.exe` | 17.108.480 bytes | `F9AF1C0B8612FE6B002940E00C7373D7097199D2C831664E67F80F700C85F7DE` |
-| `Caixa no Controle_0.1.0_x64_en-US.msi` | 6.451.200 bytes | `7328C75ACE7D257071AEBA62340D6B796682FF0C103F0107186B5CFC82B0AC5A` |
-| `Caixa no Controle_0.1.0_x64-setup.exe` | 4.607.054 bytes | `90764736733F942C957FD4B1210CF72643FD4084FBC7536648C9F49727B60AFA` |
+| `caixasimples-bratec.exe` | 17.108.480 bytes | `F9AF1C0B8612FE6B002940E00C7373D7097199D2C831664E67F80F700C85F7DE` |
+| `CaixaSimples - Bratec_0.1.0_x64_en-US.msi` | 6.451.200 bytes | `7328C75ACE7D257071AEBA62340D6B796682FF0C103F0107186B5CFC82B0AC5A` |
+| `CaixaSimples - Bratec_0.1.0_x64-setup.exe` | 4.607.054 bytes | `90764736733F942C957FD4B1210CF72643FD4084FBC7536648C9F49727B60AFA` |
 | `Relatorio_Fase7_Aceite.pdf` | 4.021 bytes | `6966D730EB4590C7DC2BE5252910B0B67FC703E92BCDF3C6094AF2F836EC98AA` |
 
 Os binários ficam em `%LOCALAPPDATA%\CaixaNoControle\cargo-target\release`. O PDF de aceite está em `output/pdf`.

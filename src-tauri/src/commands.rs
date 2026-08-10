@@ -25,7 +25,8 @@ use crate::application::sales::{
     SalesOptions,
 };
 use crate::commercial::{
-    self, CheckoutRequest, CheckoutResponse, CommercialPlan, CommercialStatus,
+    self, BetaActivationRequest, CheckoutRequest, CheckoutResponse, CommercialPlan,
+    CommercialStatus, TechnicalBuildInfo,
 };
 use serde::Serialize;
 use tauri::AppHandle;
@@ -58,6 +59,11 @@ pub fn commercial_status(app: AppHandle) -> Result<CommercialStatus, String> {
 }
 
 #[tauri::command]
+pub fn commercial_build_info(app: AppHandle) -> Result<TechnicalBuildInfo, String> {
+    commercial::build_info(&app)
+}
+
+#[tauri::command]
 pub fn commercial_create_checkout(
     app: AppHandle,
     input: CheckoutRequest,
@@ -68,6 +74,16 @@ pub fn commercial_create_checkout(
 #[tauri::command]
 pub fn commercial_refresh_entitlement(app: AppHandle) -> Result<CommercialStatus, String> {
     let result = commercial::refresh(&app)?;
+    entitlements::reconcile(&app)?;
+    Ok(result)
+}
+
+#[tauri::command]
+pub fn commercial_activate_beta(
+    app: AppHandle,
+    input: BetaActivationRequest,
+) -> Result<CommercialStatus, String> {
+    let result = commercial::activate_beta(&app, input)?;
     entitlements::reconcile(&app)?;
     Ok(result)
 }
@@ -362,7 +378,7 @@ pub fn open_user_manual(app: AppHandle) -> Result<(), String> {
     let path = app
         .path()
         .resolve(
-            "manual/Manual-do-Usuario-Caixa-no-Controle.pdf",
+            "manual/Manual-do-Usuario-CaixaSimples-Bratec.pdf",
             BaseDirectory::Resource,
         )
         .map_err(|error| format!("não foi possível localizar o manual: {error}"))?;

@@ -54,6 +54,7 @@ pub enum DatabaseError {
 pub(crate) fn database_path(app: &AppHandle) -> Result<PathBuf, DatabaseError> {
     let directory = app.path().app_data_dir()?;
     fs::create_dir_all(&directory)?;
+    // Nome persistido por compatibilidade com instalações anteriores ao rebranding.
     Ok(directory.join("caixa-no-controle.db"))
 }
 

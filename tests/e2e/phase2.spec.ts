@@ -7,6 +7,8 @@ test("percorre as nove etapas do primeiro acesso sem perder os dados", async ({ 
   await expect(page.getByRole("button", { name: "Restaurar backup" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Meu plano" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Anual.*R\$\s*99,90/ })).toBeVisible();
+  await expect(page.getByLabel("Recebeu um convite para a beta?")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ativar convite beta" })).toBeVisible();
   await page.getByRole("button", { name: "Começar configuração" }).click();
 
   await expect(page.getByLabel(/Etapa 1 de 9/)).toBeVisible();

@@ -1,6 +1,6 @@
 # Aceite técnico — Fase 6
 
-**Produto:** Caixa no Controle — Essencial 1.0  
+**Produto:** CaixaSimples - Bratec — Essencial 1.0
 **Data:** 05/08/2026  
 **Resultado:** aprovado — Fase 6 concluída em 100%
 
@@ -55,13 +55,13 @@
 
 | Artefato | Tamanho | SHA-256 |
 | --- | ---: | --- |
-| `caixa-no-controle.exe` | 15.948.288 bytes | `8FA89BBD8C67626B5DF57ED11AD978E3F36FDC3AB526FD5100FBE88D34D4135F` |
-| `Caixa no Controle_0.1.0_x64_en-US.msi` | 6.008.832 bytes | `9EB51C7AAC9AD0ACDB3896838BB4B5A08225967B9461C2A3A7DD67BC5F183C75` |
-| `Caixa no Controle_0.1.0_x64-setup.exe` | 4.282.812 bytes | `0A5CF3723B46A039906996FA9FAF6382EAFDF95B9BAB0D8D42B65B42172F141D` |
+| `caixasimples-bratec.exe` | 15.948.288 bytes | `8FA89BBD8C67626B5DF57ED11AD978E3F36FDC3AB526FD5100FBE88D34D4135F` |
+| `CaixaSimples - Bratec_0.1.0_x64_en-US.msi` | 6.008.832 bytes | `9EB51C7AAC9AD0ACDB3896838BB4B5A08225967B9461C2A3A7DD67BC5F183C75` |
+| `CaixaSimples - Bratec_0.1.0_x64-setup.exe` | 4.282.812 bytes | `0A5CF3723B46A039906996FA9FAF6382EAFDF95B9BAB0D8D42B65B42172F141D` |
 
 Diretório: `%LOCALAPPDATA%\CaixaNoControle\cargo-target\release`.
 
-A cópia preventiva do banco anterior à migração foi preservada em `%APPDATA%\br.com.bratecinfo.caixanocontrole\caixa-no-controle.pre-phase6-20260805-1604.db`.
+A cópia preventiva do banco anterior à migração foi preservada em `%APPDATA%\br.com.bratecinfo.caixanocontrole\caixasimples-bratec.pre-phase6-20260805-1604.db`.
 
 ## Fronteira da próxima fase
 

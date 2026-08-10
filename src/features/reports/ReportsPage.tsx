@@ -582,7 +582,7 @@ function ReportPreview({
     >
       <header className="border-b border-slate-200 p-5">
         <p className="text-xs font-bold uppercase tracking-wide text-brand">
-          Caixa no Controle
+          CaixaSimples - Bratec
         </p>
         <div className="mt-1 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-xl font-bold text-ink">{result.title}</h2>
@@ -670,7 +670,7 @@ function ReportPreview({
         </table>
       </div>
       <footer className="hidden border-t border-slate-200 p-3 text-center text-xs text-slate-500 print:block">
-        Caixa no Controle · {result.businessName}
+        CaixaSimples - Bratec · {result.businessName}
       </footer>
     </article>
   );

@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Config } from "./config.js";
-import type { Plan, ProviderSubscriptionSnapshot, SubscriptionState } from "./domain.js";
+import type { ProviderSubscriptionSnapshot, SubscriptionState } from "./domain.js";
 import type { CheckoutInput, CheckoutResult, PaymentProvider, WebhookRequest } from "./payment-provider.js";
 
 type JsonRecord = Record<string, unknown>;

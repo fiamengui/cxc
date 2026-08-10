@@ -1,10 +1,10 @@
-# Caixa no Controle
+# CaixaSimples - Bratec
 
 Aplicação desktop offline para gestão financeira simples de pequenos negócios, desenvolvida pela BratecInfo.
 
 ## Estado atual
 
-A versão 1.1.0 preserva as Fases 0 a 10 e acrescenta a plataforma comercial por assinatura: plano mensal de R$ 9,90, anual de R$ 99,90, checkout hospedado no Mercado Pago, backend PostgreSQL separado, identidade Ed25519 protegida por DPAPI e autorização offline temporária assinada. O trial continua com 50 operações e todos os dados permanecem consultáveis após o limite.
+A versão `1.2.0-beta.1` preserva integralmente a base `1.1.0` e prepara a distribuição controlada sob a identidade CaixaSimples - Bratec. A plataforma comercial mantém plano mensal de R$ 9,90, anual de R$ 99,90, checkout hospedado no Mercado Pago, backend PostgreSQL separado, identidade Ed25519 protegida por DPAPI e autorização offline temporária assinada. O trial continua com 50 operações e todos os dados permanecem consultáveis após o limite.
 
 ## Requisitos
 
@@ -59,7 +59,7 @@ O release final fica no subdiretório da versão em `output/release`. A assinatu
 
 ## Dados locais
 
-- Banco: `%APPDATA%\br.com.bratecinfo.caixanocontrole\caixa-no-controle.db`
+- Banco (nome interno preservado para upgrades): `%APPDATA%\br.com.bratecinfo.caixanocontrole\caixa-no-controle.db`
 - Logs: `%LOCALAPPDATA%\br.com.bratecinfo.caixanocontrole\logs`
 
 Os valores financeiros são armazenados exclusivamente como inteiros em centavos. O banco local não deve ser editado manualmente.

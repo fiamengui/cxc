@@ -1,9 +1,32 @@
-# Plano de Implementação — Caixa no Controle
+# Plano de Implementação — CaixaSimples - Bratec
 
-**Produto:** Caixa no Controle — Essencial 1.0  
+## Checkpoint BETA_PRODUCTION_READINESS — 10/08/2026
+
+- Estado de partida preservado no Git antes da preparação da beta.
+- Versão de entrada: `1.1.0`; primeira beta segura: `1.2.0-beta.1` para evitar downgrade.
+- Arquitetura mantida: React → serviço de aplicação → comando Tauri → serviço/repositório Rust → SQLite; backend comercial Fastify → PostgreSQL.
+- Compatibilidade obrigatória: o identificador Tauri `br.com.bratecinfo.caixanocontrole`, o `upgradeCode` do MSI, códigos `CNC-*`, código de produto de licenças, nomes de banco e diretórios persistidos permanecem internos para preservar upgrades, licenças e dados existentes.
+- Ambientes encontrados: desktop local; Neon/Render/Mercado Pago em sandbox; produção externa ainda depende de banco separado e troca segura de secrets.
+- Meta autorizada: beta gratuita controlada de até cinco clientes convidados, canal `beta`, sem bypass universal e sem cobrança dos convidados ativos.
+
+### Progresso da preparação da beta
+
+- [x] Fase 1 — auditoria, checkpoint, rename compatível e testes de regressão.
+- [~] Fase 2 — código, migrations e health prontos; criação/troca segura do Neon e Render externos pendente.
+- [x] Fase 3 — resiliência e experiência de cold start do Render.
+- [x] Fase 4 — convites, limite, administração mínima e entitlement beta.
+- [~] Fase 5 — isolamento, preços, checkout e webhook testados; login/configuração real do Mercado Pago pendente.
+- [~] Fase 6 — pipeline e build local validados; recompilação final aguarda URL Render de produção.
+- [~] Fase 7 — geração de hashes, manifesto, aviso e notas pronta; artefatos finais aguardam o build de produção.
+- [ ] Fase 8 — smoke test em Windows limpo.
+- [~] Fase 9 — pipeline MSIX, assets e checklist prontos; identidade do Partner Center e pacote definitivo pendentes.
+
+Na Fase 1, a identidade visual foi alterada para `CaixaSimples - Bratec`. Permanecem deliberadamente antigos apenas identificadores internos persistidos e a migration histórica `0001_commercial.sql`, cuja alteração quebraria compatibilidade e verificação de checksum.
+
+**Produto:** CaixaSimples - Bratec — Essencial 1.0
 **Responsável:** BratecInfo  
-**Atualizado em:** 05/08/2026  
-**Situação:** Fases 0 a 8 concluídas em 100%; próxima etapa autorizável: Fase 9.
+**Atualizado em:** 10/08/2026
+**Situação:** Sistema funcional anterior preservado; preparação da beta em execução, com Fase 1 concluída.
 
 ## 1. Diagnóstico técnico
 

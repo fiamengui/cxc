@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf, time::Duration};
+use std::{fs, path::PathBuf, thread, time::Duration};
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use chrono::{DateTime, Utc};
@@ -14,6 +14,7 @@ use crate::{application::entitlements, licensing};
 
 const STATE_ENTROPY: &[u8] = b"BratecInfo|CaixaNoControle|CommercialState|v1";
 const DEFAULT_API_URL: &str = "";
+const WAKE_ATTEMPTS: u32 = 5;
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -41,6 +42,14 @@ pub struct CheckoutResponse {
     pub subscription_id: String,
     pub checkout_url: String,
     pub status: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BetaActivationRequest {
+    pub code: String,
+    pub name: String,
+    pub email: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -97,6 +106,18 @@ pub struct CommercialStatus {
     pub valid_until: Option<String>,
     pub offline: bool,
     pub requires_online_validation: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TechnicalBuildInfo {
+    pub product: &'static str,
+    pub version: &'static str,
+    pub build: &'static str,
+    pub environment: &'static str,
+    pub release_channel: &'static str,
+    pub api_endpoint: String,
+    pub installation_id: String,
 }
 
 fn state_path(app: &AppHandle) -> Result<PathBuf, String> {
@@ -255,15 +276,94 @@ fn api_url() -> Result<String, String> {
     {
         return Err("O serviço de assinaturas ainda não foi configurado nesta compilação.".into());
     }
+    let parsed = reqwest::Url::parse(&configured)
+        .map_err(|_| "A URL do serviço comercial é inválida nesta compilação.".to_string())?;
+    if !parsed.username().is_empty()
+        || parsed.password().is_some()
+        || parsed.query().is_some()
+        || parsed.fragment().is_some()
+    {
+        return Err("A URL do serviço comercial contém componentes não permitidos.".into());
+    }
     Ok(configured.trim_end_matches('/').to_string())
+}
+
+pub fn build_info(app: &AppHandle) -> Result<TechnicalBuildInfo, String> {
+    Ok(TechnicalBuildInfo {
+        product: "CaixaSimples - Bratec",
+        version: env!("CARGO_PKG_VERSION"),
+        build: option_env!("CNC_BUILD_ID").unwrap_or("local"),
+        environment: option_env!("CNC_BUILD_ENVIRONMENT").unwrap_or(if cfg!(debug_assertions) {
+            "Development"
+        } else {
+            "Production Beta"
+        }),
+        release_channel: option_env!("CNC_RELEASE_CHANNEL").unwrap_or(if cfg!(debug_assertions) {
+            "development"
+        } else {
+            "beta"
+        }),
+        api_endpoint: api_url().unwrap_or_else(|_| "Não configurada".into()),
+        installation_id: entitlements::installation_id(app)?,
+    })
 }
 fn client() -> Result<reqwest::blocking::Client, String> {
     reqwest::blocking::Client::builder()
-        .timeout(Duration::from_secs(15))
-        .user_agent(concat!("CaixaNoControle/", env!("CARGO_PKG_VERSION")))
+        .connect_timeout(Duration::from_secs(8))
+        .timeout(Duration::from_secs(20))
+        .user_agent(concat!("CaixaSimplesBratec/", env!("CARGO_PKG_VERSION")))
         .https_only(!cfg!(debug_assertions))
         .build()
         .map_err(|_| "Não foi possível preparar a conexão segura.".into())
+}
+
+fn wake_delay(attempt: u32) -> Duration {
+    let base_ms = 1_500_u64.saturating_mul(1_u64 << attempt.min(3));
+    let jitter_ms = u64::from(Uuid::new_v4().as_bytes()[0]) * 3;
+    Duration::from_millis((base_ms + jitter_ms).min(12_000))
+}
+
+fn is_waking_status(status: reqwest::StatusCode) -> bool {
+    matches!(status.as_u16(), 502..=504)
+}
+
+fn ensure_service_awake(client: &reqwest::blocking::Client, base_url: &str) -> Result<(), String> {
+    let mut last_error =
+        "SERVER_UNAVAILABLE: O serviço comercial está temporariamente indisponível.".to_string();
+    for attempt in 0..WAKE_ATTEMPTS {
+        match client.get(format!("{base_url}/health")).send() {
+            Ok(response) if response.status().is_success() => return Ok(()),
+            Ok(response) if is_waking_status(response.status()) => {
+                last_error = "SERVER_WAKING: O serviço está iniciando. Aguarde alguns instantes e tente novamente.".into();
+            }
+            Ok(response) if matches!(response.status().as_u16(), 401 | 403) => {
+                return Err("AUTH_ERROR: O serviço recusou a autenticação da aplicação.".into());
+            }
+            Ok(_) => {
+                return Err(
+                    "SERVER_UNAVAILABLE: O serviço comercial não respondeu como esperado.".into(),
+                )
+            }
+            Err(error) if error.is_timeout() => {
+                last_error =
+                    "TIMEOUT: O serviço demorou mais que o esperado para responder.".into();
+            }
+            Err(error) if error.is_connect() => {
+                last_error =
+                    "NETWORK_OFFLINE: Não foi possível alcançar o serviço. Verifique a internet."
+                        .into();
+            }
+            Err(_) => {
+                return Err(
+                    "SERVER_UNAVAILABLE: Não foi possível estabelecer uma conexão segura.".into(),
+                )
+            }
+        }
+        if attempt + 1 < WAKE_ATTEMPTS {
+            thread::sleep(wake_delay(attempt));
+        }
+    }
+    Err(last_error)
 }
 fn response<T: for<'a> Deserialize<'a>>(
     response: reqwest::blocking::Response,
@@ -291,7 +391,7 @@ pub fn plans() -> Vec<CommercialPlan> {
     vec![
         CommercialPlan {
             code: "ESSENTIAL_MONTHLY".into(),
-            name: "Caixa no Controle Essencial".into(),
+            name: "CaixaSimples - Bratec Essencial".into(),
             billing_cycle: "MONTHLY".into(),
             amount_cents: 990,
             offline_lease_days: 7,
@@ -299,7 +399,7 @@ pub fn plans() -> Vec<CommercialPlan> {
         },
         CommercialPlan {
             code: "ESSENTIAL_ANNUAL".into(),
-            name: "Caixa no Controle Essencial".into(),
+            name: "CaixaSimples - Bratec Essencial".into(),
             billing_cycle: "ANNUAL".into(),
             amount_cents: 9990,
             offline_lease_days: 30,
@@ -338,9 +438,11 @@ pub fn create_checkout(
         device_fingerprint: &state.device_fingerprint,
         plan_code: &input.plan_code,
     };
+    let base_url = api_url()?;
+    let http = client()?;
+    ensure_service_awake(&http, &base_url)?;
     let result = response(
-        client()?
-            .post(format!("{}/v1/checkout", api_url()?))
+        http.post(format!("{base_url}/v1/checkout"))
             .json(&body)
             .send()
             .map_err(|_| {
@@ -357,6 +459,70 @@ pub fn create_checkout(
     state.subscription_id = Some(result.subscription_id.clone());
     write_state(app, &state)?;
     Ok(result)
+}
+
+pub fn activate_beta(
+    app: &AppHandle,
+    input: BetaActivationRequest,
+) -> Result<CommercialStatus, String> {
+    let mut state = ensure_state(app)?;
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Body<'a> {
+        code: &'a str,
+        name: &'a str,
+        email: &'a str,
+        installation_code: &'a str,
+        device_public_key: &'a str,
+        device_fingerprint: &'a str,
+        client_version: &'static str,
+    }
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct ActivationResponse {
+        beta_access_id: String,
+        status: String,
+        entitlement: SignedEntitlement,
+    }
+    let base_url = api_url()?;
+    let http = client()?;
+    ensure_service_awake(&http, &base_url)?;
+    let result: ActivationResponse = response(
+        http.post(format!("{base_url}/v1/beta/activate"))
+            .json(&Body {
+                code: &input.code,
+                name: &input.name,
+                email: &input.email,
+                installation_code: &state.installation_code,
+                device_public_key: &state.device_public_key,
+                device_fingerprint: &state.device_fingerprint,
+                client_version: env!("CARGO_PKG_VERSION"),
+            })
+            .send()
+            .map_err(|_| {
+                "NETWORK_OFFLINE: Não foi possível ativar a beta agora. Verifique sua internet."
+                    .to_string()
+            })?,
+    )?;
+    if result.status != "ACTIVE" {
+        return Err("SUBSCRIPTION_ERROR: O convite beta não foi ativado.".into());
+    }
+    verify_entitlement(&result.entitlement, &state)?;
+    let now = Utc::now();
+    let valid_until = DateTime::parse_from_rfc3339(&result.entitlement.payload.valid_until)
+        .map_err(|_| "Validade da beta inválida.")?
+        .with_timezone(&Utc);
+    if valid_until <= now
+        || result.entitlement.payload.server_sequence <= state.highest_server_sequence
+    {
+        return Err("Entitlement beta fora da validade ou repetido.".into());
+    }
+    state.subscription_id = Some(result.beta_access_id);
+    state.highest_server_sequence = result.entitlement.payload.server_sequence;
+    state.last_trusted_server_time = Some(result.entitlement.payload.trusted_server_time.clone());
+    state.signed_entitlement = Some(result.entitlement);
+    write_state(app, &state)?;
+    status(app)
 }
 
 fn canonical(value: &Value) -> String {
@@ -441,9 +607,11 @@ pub fn refresh(app: &AppHandle) -> Result<CommercialStatus, String> {
         nonce: String,
         request_id: String,
     }
+    let base_url = api_url()?;
+    let http = client()?;
+    ensure_service_awake(&http, &base_url)?;
     let challenge: Challenge = response(
-        client()?
-            .post(format!("{}/v1/installations/challenge", api_url()?))
+        http.post(format!("{base_url}/v1/installations/challenge"))
             .json(&ChallengeBody {
                 installation_code: &state.installation_code,
                 action: "entitlement.refresh",
@@ -491,7 +659,7 @@ pub fn refresh(app: &AppHandle) -> Result<CommercialStatus, String> {
         action: &'static str,
         signature: &'a str,
     }
-    let document:SignedEntitlement=response(client()?.post(format!("{}/v1/entitlements/refresh",api_url()?)).json(&RefreshBody{installation_code:&state.installation_code,subscription_id:&subscription_id,challenge_id:&challenge.challenge_id,nonce:&challenge.nonce,request_id:&request_id,timestamp:&timestamp,action:"entitlement.refresh",signature:&signature}).send().map_err(|_|"Não foi possível renovar a autorização. O uso offline continuará até o limite informado.".to_string())?)?;
+    let document:SignedEntitlement=response(http.post(format!("{base_url}/v1/entitlements/refresh")).json(&RefreshBody{installation_code:&state.installation_code,subscription_id:&subscription_id,challenge_id:&challenge.challenge_id,nonce:&challenge.nonce,request_id:&request_id,timestamp:&timestamp,action:"entitlement.refresh",signature:&signature}).send().map_err(|_|"SUBSCRIPTION_ERROR: Não foi possível renovar a autorização. O uso offline continuará até o limite informado.".to_string())?)?;
     verify_entitlement(&document, &state)?;
     let client_now = Utc::now();
     let not_before = DateTime::parse_from_rfc3339(&document.payload.not_before)
@@ -586,7 +754,7 @@ pub fn active_payload(app: &AppHandle) -> Option<EntitlementPayload> {
     (valid
         && matches!(
             document.payload.subscription_status.as_str(),
-            "ACTIVE" | "GRACE_PERIOD"
+            "ACTIVE" | "GRACE_PERIOD" | "BETA_ACTIVE"
         ))
     .then(|| document.payload.clone())
 }
@@ -620,7 +788,10 @@ pub fn record_trial_high_water_if_initialized(app: &AppHandle, usage: i64) -> Re
 
 #[cfg(test)]
 mod tests {
-    use super::{canonical, verify_entitlement_signature, EntitlementPayload, SignedEntitlement};
+    use super::{
+        canonical, is_waking_status, verify_entitlement_signature, wake_delay, EntitlementPayload,
+        SignedEntitlement,
+    };
     use base64::{engine::general_purpose::STANDARD, Engine};
     use ed25519_dalek::{Signer, SigningKey};
     use rand_core::OsRng;
@@ -631,6 +802,24 @@ mod tests {
             canonical(&json!({"z":1,"a":{"b":2,"a":1}})),
             r#"{"a":{"a":1,"b":2},"z":1}"#
         )
+    }
+
+    #[test]
+    fn cold_start_retries_only_gateway_waking_statuses() {
+        assert!(is_waking_status(reqwest::StatusCode::BAD_GATEWAY));
+        assert!(is_waking_status(reqwest::StatusCode::SERVICE_UNAVAILABLE));
+        assert!(is_waking_status(reqwest::StatusCode::GATEWAY_TIMEOUT));
+        assert!(!is_waking_status(reqwest::StatusCode::BAD_REQUEST));
+        assert!(!is_waking_status(reqwest::StatusCode::UNAUTHORIZED));
+    }
+
+    #[test]
+    fn cold_start_backoff_is_bounded() {
+        let delays = (0..5).map(wake_delay).collect::<Vec<_>>();
+        assert!(delays.windows(2).all(|window| window[1] >= window[0]));
+        assert!(delays
+            .iter()
+            .all(|delay| *delay <= std::time::Duration::from_secs(12)));
     }
 
     #[test]

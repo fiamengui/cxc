@@ -43,7 +43,7 @@ try {
 
   $version = (Get-Content (Join-Path $root "package.json") -Raw | ConvertFrom-Json).version
   $artifacts = @(
-    (Join-Path $root "src-tauri\target\release\caixa-no-controle.exe"),
+    (Join-Path $root "src-tauri\target\release\caixasimples-bratec.exe"),
     (Get-ChildItem (Join-Path $root "src-tauri\target\release\bundle\nsis") -Filter "*$version*setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName,
     (Get-ChildItem (Join-Path $root "src-tauri\target\release\bundle\msi") -Filter "*$version*.msi" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
   )

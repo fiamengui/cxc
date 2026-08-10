@@ -123,7 +123,7 @@ test("primeiro acesso é acessível por teclado e sem violações graves", async
 }) => {
   await page.goto("/?firstRun=1");
   await expect(
-    page.getByRole("heading", { name: "Caixa no Controle" }),
+    page.getByRole("heading", { name: "CaixaSimples - Bratec" }),
   ).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
   await page.keyboard.press("Tab");

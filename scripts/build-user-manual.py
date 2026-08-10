@@ -9,7 +9,7 @@ from docx.shared import Inches, Pt, RGBColor
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "output" / "manual"
-DOCX = OUTPUT / "Manual-do-Usuario-Caixa-no-Controle.docx"
+DOCX = OUTPUT / "Manual-do-Usuario-CaixaSimples-Bratec.docx"
 BLUE = "2563EB"
 INK = "0F172A"
 MUTED = "475569"
@@ -196,7 +196,7 @@ def build():
     # Editorial cover
     doc.add_paragraph().paragraph_format.space_after = Pt(36)
     logo = ROOT / "src-tauri" / "icons" / "icon.png"
-    add_picture(doc, logo, "Ícone azul do aplicativo Caixa no Controle", 2.15)
+    add_picture(doc, logo, "Ícone azul do aplicativo CaixaSimples - Bratec", 2.15)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(20)
@@ -204,17 +204,17 @@ def build():
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(8)
-    font(p.add_run("Caixa no Controle"), 30, True, INK)
+    font(p.add_run("CaixaSimples - Bratec"), 30, True, INK)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     font(p.add_run("Gestão financeira simples para pequenos negócios"), 14, color=MUTED)
     doc.add_paragraph().paragraph_format.space_after = Pt(48)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    font(p.add_run("Versão 1.1.0  •  Agosto de 2026  •  BratecInfo"), 10, True, BLUE)
+    font(p.add_run("Versão 1.2.0-beta.1  •  Agosto de 2026  •  BratecInfo"), 10, True, BLUE)
 
     chapter(doc, "Antes de começar", "1 · visão geral")
-    add_body(doc, "O Caixa no Controle organiza caixa, contas, vendas, metas, relatórios, licenças e backups em um aplicativo desktop. O funcionamento principal é offline: seus dados financeiros ficam no computador.")
+    add_body(doc, "O CaixaSimples - Bratec organiza caixa, contas, vendas, metas, relatórios, licenças e backups em um aplicativo desktop. O funcionamento principal é offline: seus dados financeiros ficam no computador.")
     callout(doc, "Responsabilidade compartilhada", "O aplicativo ajuda na gestão, mas não substitui orientação contábil, fiscal ou jurídica. Mantenha backups em outro dispositivo.")
     doc.add_heading("Requisitos", level=2)
     add_bullets(doc, ["Windows 10 ou 11, 64 bits.", "Permissão para instalar aplicativos no perfil do usuário.", "Espaço adicional para o WebView2 offline e para os backups."])
@@ -230,7 +230,7 @@ def build():
         for cell, value in zip(cells, (area, purpose)): font(cell.paragraphs[0].add_run(value), 10)
 
     chapter(doc, "Instalação no Windows", "2 · distribuição")
-    add_bullets(doc, ["Execute Caixa no Controle_1.1.0_x64-setup.exe.", "Leia e aceite o contrato de licença.", "Confirme a pasta sugerida e o atalho opcional da área de trabalho.", "Abra o aplicativo pelo menu Iniciar > BratecInfo."])
+    add_bullets(doc, ["Execute CaixaSimples - Bratec_1.2.0-beta.1_x64-setup.exe.", "Leia e aceite o contrato de licença.", "Confirme a pasta sugerida e o atalho opcional da área de trabalho.", "Abra o aplicativo pelo menu Iniciar > BratecInfo."])
     callout(doc, "Instalação sem internet", "O instalador inclui o WebView2 Runtime offline. Em versões atuais do Windows ele normalmente já está presente.")
     doc.add_heading("Aviso de assinatura", level=2)
     add_body(doc, "Enquanto a BratecInfo não configurar um certificado comercial, o Windows poderá mostrar “Editor desconhecido”. Baixe o instalador somente de um canal autorizado e compare o SHA-256 com o arquivo SHA256SUMS.txt do release.")
@@ -310,25 +310,25 @@ def build():
         cells = table.add_row().cells
         for cell, value in zip(cells, (situation, action)): font(cell.paragraphs[0].add_run(value), 10)
     doc.add_heading("Ao pedir suporte", level=2)
-    add_body(doc, "Informe a versão 1.1.0, a edição do Windows, os passos para reproduzir e a mensagem exata. Anexe o pacote de diagnóstico somente se desejar.")
+    add_body(doc, "Informe a versão 1.2.0-beta.1, a edição do Windows, os passos para reproduzir e a mensagem exata. Anexe o pacote de diagnóstico somente se desejar.")
 
     chapter(doc, "Referência rápida", "12 · consulta")
     doc.add_heading("Atalhos", level=2)
     add_bullets(doc, ["Tab / Shift+Tab — próximo ou controle anterior", "Enter / Espaço — ativar", "Esc — fechar diálogo", "Ctrl+F no leitor de PDF — pesquisar neste manual"])
     doc.add_heading("Dados locais", level=2)
-    add_body(doc, "Banco: %APPDATA%\\br.com.bratecinfo.caixanocontrole\\caixa-no-controle.db")
+    add_body(doc, "Banco interno preservado: %APPDATA%\\br.com.bratecinfo.caixanocontrole\\caixa-no-controle.db")
     add_body(doc, "Logs: %LOCALAPPDATA%\\br.com.bratecinfo.caixanocontrole\\logs")
     callout(doc, "Antes de apagar", "Crie um backup protegido, copie-o para outro dispositivo e confirme o checksum.", "FFF7ED")
     doc.add_heading("Sobre", level=2)
-    add_body(doc, "Caixa no Controle 1.1.0 · BratecInfo · Manual revisado em 7 de agosto de 2026.")
+    add_body(doc, "CaixaSimples - Bratec 1.2.0-beta.1 · BratecInfo · Manual revisado em 10 de agosto de 2026.")
 
     # Keep page furniture consistent in all generated sections.
     for sec in doc.sections:
         sec.header.is_linked_to_previous = True
         sec.footer.is_linked_to_previous = True
 
-    doc.core_properties.title = "Manual do usuário — Caixa no Controle"
-    doc.core_properties.subject = "Guia de instalação e operação do Caixa no Controle 1.1.0"
+    doc.core_properties.title = "Manual do usuário — CaixaSimples - Bratec"
+    doc.core_properties.subject = "Guia de instalação e operação do CaixaSimples - Bratec 1.2.0-beta.1"
     doc.core_properties.author = "BratecInfo"
     doc.core_properties.keywords = "financeiro, caixa, vendas, backup, offline"
     doc.save(DOCX)

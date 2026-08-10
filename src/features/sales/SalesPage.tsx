@@ -1432,7 +1432,7 @@ function Receipt({ detail }: { detail: SaleDetail }) {
       )}
       <footer className="mt-8 border-t border-slate-300 pt-4 text-center text-xs">
         <strong>DOCUMENTO SEM VALOR FISCAL</strong>
-        <p className="mt-1">Gerado localmente pelo Caixa no Controle.</p>
+        <p className="mt-1">Gerado localmente pelo CaixaSimples - Bratec.</p>
       </footer>
     </article>
   );

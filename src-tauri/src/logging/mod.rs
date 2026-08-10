@@ -23,7 +23,7 @@ pub fn initialize(app: &AppHandle) -> Result<ApplicationLogger, LoggingError> {
     let directory = app.path().app_log_dir()?;
     fs::create_dir_all(&directory)?;
 
-    let appender = tracing_appender::rolling::daily(directory, "caixa-no-controle.log");
+    let appender = tracing_appender::rolling::daily(directory, "caixasimples-bratec.log");
     let (writer, guard) = tracing_appender::non_blocking(appender);
     let filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())

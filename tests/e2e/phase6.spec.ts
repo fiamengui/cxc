@@ -187,6 +187,13 @@ test("consulta dashboard gerencial completo e abre as metas do período", async 
   await expect(page.getByText("Internet", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Contas atrasadas" })).toBeVisible();
 
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({
+      path: "docs/phase-9-audit/06-dashboard-final-completo.png",
+      fullPage: false,
+    });
+
   await page.getByRole("button", { name: /Progresso da meta/ }).click();
   await expect(page).toHaveURL(/\/metas\?month=2026-08$/);
   await expect(page.getByRole("heading", { name: "Metas" })).toBeVisible();

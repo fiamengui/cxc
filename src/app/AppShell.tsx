@@ -212,7 +212,7 @@ export function AppShell() {
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-700 px-4">
           {(menuOpen || !window.matchMedia("(min-width: 1024px)").matches) && (
             <span className="font-semibold tracking-tight">
-              Caixa no Controle
+              CaixaSimples - Bratec
             </span>
           )}
           <button

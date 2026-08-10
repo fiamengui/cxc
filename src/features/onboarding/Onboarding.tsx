@@ -173,7 +173,7 @@ export function Onboarding({ onCompleted }: { onCompleted: () => void }) {
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6">
       <section className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-surface sm:p-10">
         <header className="mb-7">
-          <p className="text-sm font-semibold text-brand">Caixa no Controle</p>
+          <p className="text-sm font-semibold text-brand">CaixaSimples - Bratec</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">
             Vamos deixar tudo pronto
           </h1>

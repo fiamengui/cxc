@@ -1,6 +1,6 @@
 # Licenciamento por assinatura
 
-O Caixa no Controle Essencial é oferecido nos planos `ESSENTIAL_MONTHLY` (R$ 9,90/mês) e `ESSENTIAL_ANNUAL` (R$ 99,90/ano). O preço é definido exclusivamente no backend. A venda permanente foi encerrada; arquivos `.cnclic` assinados permanecem aceitos somente para honrar licenças legadas já emitidas.
+O CaixaSimples - Bratec Essencial é oferecido nos planos `ESSENTIAL_MONTHLY` (R$ 9,90/mês) e `ESSENTIAL_ANNUAL` (R$ 99,90/ano). O preço é definido exclusivamente no backend. A venda permanente foi encerrada; arquivos `.cnclic` assinados permanecem aceitos somente para honrar licenças legadas já emitidas.
 
 ## Entitlement
 

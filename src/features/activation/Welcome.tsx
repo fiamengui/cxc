@@ -69,10 +69,10 @@ export function Welcome({ onStart }: { onStart: () => void }) {
           </span>
           <div>
             <p className="font-bold text-ink">BratecInfo</p>
-            <p className="text-xs text-slate-500">versão 1.1.0</p>
+            <p className="text-xs text-slate-500">versão 1.2.0-beta.1</p>
           </div>
         </div>
-        <h1 className="mt-5 text-3xl font-bold text-ink">Caixa no Controle</h1>
+        <h1 className="mt-5 text-3xl font-bold text-ink">CaixaSimples - Bratec</h1>
         <p className="mt-3 leading-7 text-slate-600">
           Registre suas movimentações em poucos segundos e entenda seu negócio
           com clareza.

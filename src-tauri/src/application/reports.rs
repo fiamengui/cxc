@@ -1968,7 +1968,7 @@ fn export_pdf_in_connection(
         pdf_text(
             &layer,
             &regular,
-            "Caixa no Controle - BratecInfo",
+            "CaixaSimples - Bratec - BratecInfo",
             6.8,
             page_width - 70.0,
             8.0,

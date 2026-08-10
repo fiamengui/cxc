@@ -3,6 +3,7 @@ export const FEATURES = ["financial_core", "contacts", "catalog", "sales", "repo
 
 export type PlanCode = "ESSENTIAL_MONTHLY" | "ESSENTIAL_ANNUAL";
 export type SubscriptionState = "PAYMENT_PENDING" | "ACTIVE" | "GRACE_PERIOD" | "PAYMENT_FAILED" | "EXPIRED" | "CANCELED" | "REFUNDED";
+export type BetaStatus = "INVITED" | "ACTIVE" | "SUSPENDED" | "CONVERTED" | "CLOSED";
 
 export type Plan = {
   code: PlanCode;
@@ -15,8 +16,8 @@ export type Plan = {
 };
 
 export const PLANS: Readonly<Record<PlanCode, Plan>> = Object.freeze({
-  ESSENTIAL_MONTHLY: { code: "ESSENTIAL_MONTHLY", name: "Caixa no Controle Essencial", billingCycle: "MONTHLY", amountCents: 990, edition: "ESSENTIAL", offlineLeaseDays: 7, gracePeriodDays: 5 },
-  ESSENTIAL_ANNUAL: { code: "ESSENTIAL_ANNUAL", name: "Caixa no Controle Essencial", billingCycle: "ANNUAL", amountCents: 9990, edition: "ESSENTIAL", offlineLeaseDays: 30, gracePeriodDays: 10 },
+  ESSENTIAL_MONTHLY: { code: "ESSENTIAL_MONTHLY", name: "CaixaSimples - Bratec Essencial", billingCycle: "MONTHLY", amountCents: 990, edition: "ESSENTIAL", offlineLeaseDays: 7, gracePeriodDays: 5 },
+  ESSENTIAL_ANNUAL: { code: "ESSENTIAL_ANNUAL", name: "CaixaSimples - Bratec Essencial", billingCycle: "ANNUAL", amountCents: 9990, edition: "ESSENTIAL", offlineLeaseDays: 30, gracePeriodDays: 10 },
 });
 
 export function planByCode(value: string): Plan {
@@ -55,10 +56,10 @@ export type EntitlementPayload = {
   installationId: string;
   devicePublicKeyFingerprint: string;
   product: typeof PRODUCT;
-  edition: "ESSENTIAL";
-  planCode: PlanCode;
+  edition: "ESSENTIAL" | "BETA";
+  planCode: PlanCode | "BETA";
   features: readonly string[];
-  subscriptionStatus: SubscriptionState;
+  subscriptionStatus: SubscriptionState | "BETA_ACTIVE";
   issuedAt: string;
   notBefore: string;
   validUntil: string;
@@ -66,4 +67,19 @@ export type EntitlementPayload = {
   schemaVersion: 1;
   keyId: string;
   trustedServerTime: string;
+};
+
+export type BetaAccessRecord = {
+  id: string;
+  invitedEmail: string;
+  status: BetaStatus;
+  customerId: string | null;
+  installationId: string | null;
+  installationCode: string | null;
+  fingerprint: string | null;
+  admittedAt: Date;
+  activatedAt: Date | null;
+  clientVersion: string | null;
+  lastActivityAt: Date | null;
+  adminNotes: string | null;
 };

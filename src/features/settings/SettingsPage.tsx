@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Building2, Database, Goal, LockKeyhole, Tags, WalletCards } from "lucide-react";
+import { Building2, Database, Goal, Info, LockKeyhole, Tags, WalletCards } from "lucide-react";
 import {
   getInitialConfiguration,
   type InitialConfiguration,
@@ -12,6 +12,7 @@ import {
   type Phase2Status,
 } from "../../infrastructure/continuity";
 import { SubscriptionPanel } from "../subscription/SubscriptionPanel";
+import { getCommercialBuildInfo, type TechnicalBuildInfo } from "../../infrastructure/commercial";
 
 const businessTypes: Record<string, string> = {
   SERVICE_PROVIDER: "Prestador de serviços",
@@ -35,6 +36,7 @@ export function SettingsPage() {
   const [demoStatus, setDemoStatus] = useState<Phase2Status | null>(null);
   const [demoBusy, setDemoBusy] = useState(false);
   const [demoFeedback, setDemoFeedback] = useState<string | null>(null);
+  const [buildInfo,setBuildInfo]=useState<TechnicalBuildInfo|null>(null);
   useEffect(() => {
     void Promise.all([getInitialConfiguration(), getPhase2Status()])
       .then(([initial, status]) => {
@@ -42,6 +44,7 @@ export function SettingsPage() {
         setDemoStatus(status);
       })
       .catch((reason) => setError(String(reason)));
+    void getCommercialBuildInfo().then(setBuildInfo).catch(()=>undefined);
   }, []);
 
   const updateDemo = async (remove: boolean) => {
@@ -182,6 +185,7 @@ export function SettingsPage() {
               </p>
             )}
           </Card>
+          {buildInfo&&<Card icon={Info} title="Informações técnicas"><Row label="Produto" value={buildInfo.product}/><Row label="Versão" value={buildInfo.version}/><Row label="Build" value={buildInfo.build}/><Row label="Ambiente" value={buildInfo.environment}/><Row label="Canal" value={buildInfo.releaseChannel}/><Row label="API" value={buildInfo.apiEndpoint}/><Row label="Instalação" value={buildInfo.installationId}/></Card>}
         </div>
       )}
     </section>

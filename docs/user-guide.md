@@ -1,14 +1,14 @@
-# Manual do usuário — Caixa no Controle 1.0
+# Manual do usuário — CaixaSimples - Bratec 1.0
 
-O Caixa no Controle é um aplicativo desktop da BratecInfo para organizar as finanças de pequenos negócios. Ele funciona offline e mantém o banco de dados no computador.
+O CaixaSimples - Bratec é um aplicativo desktop da BratecInfo para organizar as finanças de pequenos negócios. Ele funciona offline e mantém o banco de dados no computador.
 
 ## Instalação
 
-1. No Windows 10 ou 11 de 64 bits, execute `Caixa no Controle_1.1.0_x64-setup.exe`.
+1. No Windows 10 ou 11 de 64 bits, execute `CaixaSimples - Bratec_1.2.0-beta.1_x64-setup.exe`.
 2. Leia e aceite o contrato de licença.
 3. Confirme a pasta sugerida. O instalador cria o atalho no menu Iniciar e oferece um atalho opcional na área de trabalho.
 4. Se o WebView2 não estiver presente, o instalador offline inclui a dependência.
-5. Abra o Caixa no Controle pelo menu Iniciar.
+5. Abra o CaixaSimples - Bratec pelo menu Iniciar.
 
 O instalador pode aparecer como “Editor desconhecido” enquanto não houver certificado comercial de assinatura de código. Verifique sempre o SHA-256 publicado junto ao release.
 
@@ -80,7 +80,7 @@ Use `Tab` e `Shift+Tab` para navegar, `Enter` ou `Espaço` para ativar controles
 
 ## Onde os dados ficam
 
-- Banco: `%APPDATA%\br.com.bratecinfo.caixanocontrole\caixa-no-controle.db`
+- Banco (nome interno preservado para upgrades): `%APPDATA%\br.com.bratecinfo.caixanocontrole\caixa-no-controle.db`
 - Logs: `%LOCALAPPDATA%\br.com.bratecinfo.caixanocontrole\logs`
 
 Não sincronize o banco aberto por serviços de nuvem e não o edite diretamente. Use o recurso de backup do aplicativo.

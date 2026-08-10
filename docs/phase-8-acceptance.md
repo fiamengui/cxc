@@ -1,6 +1,6 @@
 # Aceite técnico — Fase 8
 
-**Produto:** Caixa no Controle — Essencial 1.0  
+**Produto:** CaixaSimples - Bratec — Essencial 1.0
 **Data:** 05/08/2026  
 **Resultado:** aprovado — Fase 8 concluída em 100%
 
@@ -51,9 +51,9 @@
 
 | Artefato | Tamanho | SHA-256 |
 | --- | ---: | --- |
-| `caixa-no-controle.exe` | 17.515.520 bytes | `457A1F0BBC6053024DCB4D1F9773562FAB23306BD13C413540BD585413775C63` |
-| `Caixa no Controle_0.1.0_x64_en-US.msi` | 6.615.040 bytes | `7481B8A08919C067D48DDC1F8EA4D6AD718DC78C44880C6B63A9702A7DAE4E22` |
-| `Caixa no Controle_0.1.0_x64-setup.exe` | 4.719.658 bytes | `6F6C9C3A04394D85C4B64EC10F4DF7E540A82A4F2A7CFA273D080CABADC6E627` |
+| `caixasimples-bratec.exe` | 17.515.520 bytes | `457A1F0BBC6053024DCB4D1F9773562FAB23306BD13C413540BD585413775C63` |
+| `CaixaSimples - Bratec_0.1.0_x64_en-US.msi` | 6.615.040 bytes | `7481B8A08919C067D48DDC1F8EA4D6AD718DC78C44880C6B63A9702A7DAE4E22` |
+| `CaixaSimples - Bratec_0.1.0_x64-setup.exe` | 4.719.658 bytes | `6F6C9C3A04394D85C4B64EC10F4DF7E540A82A4F2A7CFA273D080CABADC6E627` |
 | `Backup_Fase8_Aceite.cncbak` | 714.148 bytes | `1049244C43DE0885B881F15FF67DD2F8BA72E76885049F67640E9752E3B1B058` |
 
 Os binários ficam em `%LOCALAPPDATA%\CaixaNoControle\cargo-target\release`. O backup de aceite está em `output/backup`; sua senha é `Aceite-Fase8-2026` e serve exclusivamente para este artefato sintético.

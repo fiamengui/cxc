@@ -1,0 +1,3 @@
+Esta é uma versão beta do CaixaSimples - Bratec distribuída diretamente pela BratecInfo. O instalador desta beta ainda não possui assinatura digital de código, portanto o Windows poderá exibir um aviso de editor desconhecido. Para verificar a integridade do arquivo, confira o hash SHA-256 disponibilizado junto ao instalador.
+
+Não desative o antivírus nem o SmartScreen. Em caso de dúvida, não execute o arquivo e solicite confirmação do hash à BratecInfo.

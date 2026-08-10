@@ -1,6 +1,6 @@
 # Aceite técnico — Fase 5
 
-**Produto:** Caixa no Controle — Essencial 1.0  
+**Produto:** CaixaSimples - Bratec — Essencial 1.0
 **Data:** 05/08/2026  
 **Resultado:** aprovado — Fase 5 concluída em 100%
 
@@ -53,8 +53,8 @@
 
 | Artefato | Tamanho | SHA-256 |
 | --- | ---: | --- |
-| `Caixa no Controle_0.1.0_x64_en-US.msi` | 5.955.584 bytes | `03447EFAE5C7A972D569368286C17F2B6F195E1B4DA6C94EBA4E92AAD90FF42F` |
-| `Caixa no Controle_0.1.0_x64-setup.exe` | 4.235.188 bytes | `83D2715ADB2C74448A17196ED87C1EB81887E9AD82F78830CEA476F0B175DDD7` |
+| `CaixaSimples - Bratec_0.1.0_x64_en-US.msi` | 5.955.584 bytes | `03447EFAE5C7A972D569368286C17F2B6F195E1B4DA6C94EBA4E92AAD90FF42F` |
+| `CaixaSimples - Bratec_0.1.0_x64-setup.exe` | 4.235.188 bytes | `83D2715ADB2C74448A17196ED87C1EB81887E9AD82F78830CEA476F0B175DDD7` |
 
 Diretório: `%LOCALAPPDATA%\CaixaNoControle\cargo-target\release\bundle`.
 

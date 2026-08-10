@@ -20,7 +20,7 @@ if (-not $nsisTarget.StartsWith($outputRoot) -or -not $msiTarget.StartsWith($out
 
 $install = Start-Process -FilePath $nsis -ArgumentList @("/S", "/D=$nsisTarget") -Wait -PassThru -WindowStyle Hidden
 if ($install.ExitCode -ne 0) { throw "Instalação NSIS retornou $($install.ExitCode)." }
-$installedExe = Join-Path $nsisTarget "caixa-no-controle.exe"
+$installedExe = Join-Path $nsisTarget "caixasimples-bratec.exe"
 $uninstaller = Join-Path $nsisTarget "uninstall.exe"
 if (-not (Test-Path $installedExe) -or -not (Test-Path $uninstaller)) {
   throw "NSIS não instalou executável e desinstalador no destino esperado."
@@ -33,7 +33,7 @@ if (Test-Path $installedExe) { throw "O executável permaneceu após a desinstal
 $msiArgs = @("/a", "`"$msi`"", "/qn", "TARGETDIR=`"$msiTarget`"")
 $msiExtract = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiArgs -Wait -PassThru -WindowStyle Hidden
 if ($msiExtract.ExitCode -ne 0) { throw "Extração administrativa MSI retornou $($msiExtract.ExitCode)." }
-$msiExe = Get-ChildItem -LiteralPath $msiTarget -Recurse -Filter "caixa-no-controle.exe" | Select-Object -First 1
+$msiExe = Get-ChildItem -LiteralPath $msiTarget -Recurse -Filter "caixasimples-bratec.exe" | Select-Object -First 1
 if (-not $msiExe) { throw "MSI não contém o executável principal." }
 
 $generatedNsis = Join-Path $root "src-tauri\target\release\nsis\x64\installer.nsi"

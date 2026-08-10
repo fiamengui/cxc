@@ -12,8 +12,8 @@ async function request(path,init={}){
   return body;
 }
 const definitions=[
-  {code:"ESSENTIAL_MONTHLY",reason:"Caixa no Controle Essencial - mensal",frequency:1,amount:9.90},
-  {code:"ESSENTIAL_ANNUAL",reason:"Caixa no Controle Essencial - anual",frequency:12,amount:99.90},
+  {code:"ESSENTIAL_MONTHLY",reason:"CaixaSimples - Bratec Essencial - mensal",frequency:1,amount:9.90},
+  {code:"ESSENTIAL_ANNUAL",reason:"CaixaSimples - Bratec Essencial - anual",frequency:12,amount:99.90},
 ];
 const search=await request("/preapproval_plan/search?status=active&limit=100");
 const existing=Array.isArray(search.results)?search.results:[];

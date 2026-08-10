@@ -1,11 +1,11 @@
-import { createHash, randomBytes, randomUUID, verify } from "node:crypto";
-import { FEATURES, PLANS, PRODUCT, planByCode, type EntitlementPayload, type PlanCode } from "./domain.js";
+import { createHash, createHmac, randomBytes, randomUUID, verify } from "node:crypto";
+import { FEATURES, PLANS, PRODUCT, planByCode, type BetaAccessRecord, type BetaStatus, type EntitlementPayload, type PlanCode } from "./domain.js";
 import { canonicalDeviceChallenge, EntitlementSigner, type SignedEntitlement } from "./entitlement.js";
 import type { PaymentProvider } from "./payment-provider.js";
 import type { CheckoutContextInput, CommercialRepository } from "./repository.js";
 
 export class CommercialService {
-  constructor(private readonly repository: CommercialRepository, private readonly provider: PaymentProvider, private readonly signer: EntitlementSigner, private readonly keyId: string, private readonly now: () => Date = () => new Date()) {}
+  constructor(private readonly repository: CommercialRepository, private readonly provider: PaymentProvider, private readonly signer: EntitlementSigner, private readonly keyId: string, private readonly now: () => Date = () => new Date(), private readonly beta: { enabled:boolean;maxCustomers:number;invitePepper:string } = {enabled:false,maxCustomers:5,invitePepper:""}) {}
 
   listPlans() { return Object.values(PLANS).map(plan => ({ ...plan })); }
 
@@ -18,6 +18,33 @@ export class CommercialService {
     const checkout = await this.provider.createSubscription({ subscriptionId: context.subscription.id, customerEmail: context.customerEmail, installationCode: context.installationCode, plan });
     await this.repository.bindProviderSubscription(context.subscription.id, checkout.providerSubscriptionId);
     return { subscriptionId: context.subscription.id, checkoutUrl: checkout.checkoutUrl, status: "PAYMENT_PENDING" as const };
+  }
+
+  private betaCodeHash(code:string){return createHmac("sha256",this.beta.invitePepper).update(code.trim().toUpperCase()).digest("hex");}
+  private assertBetaEnabled(){if(!this.beta.enabled)throw new Error("A beta controlada não está disponível neste ambiente.");}
+  async createBetaInvitation(input:{email:string;notes:string|null}) {
+    this.assertBetaEnabled();
+    let token=""; while(token.length<12) token+=randomBytes(12).toString("base64url").replace(/[^A-Z0-9]/gi,"").toUpperCase();
+    const code=`BETA-${token.slice(0,4)}-${token.slice(4,8)}-${token.slice(8,12)}`;
+    const result=await this.repository.createBetaInvitation({codeHash:this.betaCodeHash(code),email:input.email,notes:input.notes,maxCustomers:this.beta.maxCustomers});
+    return {code,status:result.access.status,slots:{used:result.used,max:this.beta.maxCustomers,remaining:Math.max(0,this.beta.maxCustomers-result.used)}};
+  }
+  async betaOverview(){this.assertBetaEnabled();const [access,used]=await Promise.all([this.repository.listBetaAccess(),this.repository.betaCapacity()]);return{slots:{used,max:this.beta.maxCustomers,remaining:Math.max(0,this.beta.maxCustomers-used)},customers:access.map(item=>({...item,admittedAt:item.admittedAt.toISOString(),activatedAt:item.activatedAt?.toISOString()??null,lastActivityAt:item.lastActivityAt?.toISOString()??null}))};}
+  async updateBetaStatus(id:string,status:BetaStatus,notes:string|null){this.assertBetaEnabled();const access=await this.repository.updateBetaStatus(id,status,notes);if(!access)throw new Error("Cliente beta não encontrado.");return access;}
+  async activateBeta(input:{code:string;name:string;email:string;installationCode:string;devicePublicKey:string;deviceFingerprint:string;clientVersion:string}) {
+    this.assertBetaEnabled();
+    const publicKey=Buffer.from(input.devicePublicKey,"base64");const fingerprint=createHash("sha256").update(publicKey).digest("hex");
+    if(publicKey.length!==32||fingerprint!==input.deviceFingerprint)throw new Error("Identidade criptográfica do dispositivo inválida.");
+    const access=await this.repository.activateBeta({codeHash:this.betaCodeHash(input.code),name:input.name,email:input.email,installationCode:input.installationCode,devicePublicKey:input.devicePublicKey,fingerprint:input.deviceFingerprint,clientVersion:input.clientVersion});
+    const entitlement=await this.issueBetaEntitlement(access);
+    const used=await this.repository.betaCapacity();
+    return{betaAccessId:access.id,status:"ACTIVE" as const,slots:{used,max:this.beta.maxCustomers,remaining:Math.max(0,this.beta.maxCustomers-used)},entitlement};
+  }
+  private async issueBetaEntitlement(access:BetaAccessRecord):Promise<SignedEntitlement>{
+    if(access.status!=="ACTIVE"||!access.customerId||!access.installationId||!access.fingerprint)throw new Error("Acesso beta sem direito de uso ativo.");
+    const now=this.now();const validUntil=new Date(now.getTime()+14*86_400_000);const sequence=await this.repository.nextBetaEntitlementSequence(access.id);const id=randomUUID();
+    const payload:EntitlementPayload={entitlementId:id,customerId:access.customerId,installationId:access.installationId,devicePublicKeyFingerprint:access.fingerprint,product:PRODUCT,edition:"BETA",planCode:"BETA",features:FEATURES,subscriptionStatus:"BETA_ACTIVE",issuedAt:now.toISOString(),notBefore:now.toISOString(),validUntil:validUntil.toISOString(),serverSequence:sequence,schemaVersion:1,keyId:this.keyId,trustedServerTime:now.toISOString()};
+    const document=this.signer.sign(payload);await this.repository.recordBetaEntitlement({id,betaAccessId:access.id,installationId:access.installationId,validFrom:now,validUntil,serverSequence:sequence,signedPayloadHash:this.signer.hash(document),keyId:this.keyId});return document;
   }
 
   async createChallenge(installationCode: string, action: string, requestId: string) {
@@ -44,7 +71,8 @@ export class CommercialService {
     if (!valid) throw new Error("Assinatura do dispositivo inválida.");
 
     const subscription = await this.repository.getSubscription(input.subscriptionId);
-    if (!subscription || subscription.installationId !== installation.id) throw new Error("Assinatura não pertence a esta instalação.");
+    if(!subscription){const access=await this.repository.getBetaAccess(input.subscriptionId);if(!access||access.installationId!==installation.id)throw new Error("Autorização não pertence a esta instalação.");return this.issueBetaEntitlement(access);}
+    if (subscription.installationId !== installation.id) throw new Error("Assinatura não pertence a esta instalação.");
     if (subscription.status !== "ACTIVE" && subscription.status !== "GRACE_PERIOD") throw new Error("Assinatura sem direito de uso ativo.");
     const now = this.now();
     const plan = PLANS[subscription.planCode as PlanCode];

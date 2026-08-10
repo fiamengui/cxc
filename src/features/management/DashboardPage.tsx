@@ -96,7 +96,7 @@ export function DashboardPage() {
             {result ? `, ${result.userName.split(" ")[0]}` : ""}
           </p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-ink">
-            {result?.businessName ?? "Caixa no Controle"}
+            {result?.businessName ?? "CaixaSimples - Bratec"}
           </h1>
           <p className="mt-1 text-slate-600">
             Gestão financeira reconciliada em um único lugar.

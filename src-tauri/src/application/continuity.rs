@@ -1013,7 +1013,10 @@ fn cleanup_automatic_backups(
         if path
             .file_name()
             .and_then(|value| value.to_str())
-            .is_some_and(|value| value.starts_with("CaixaNoControle_Automatico_"))
+            .is_some_and(|value| {
+                value.starts_with("CaixaSimplesBratec_Automatico_")
+                    || value.starts_with("CaixaNoControle_Automatico_")
+            })
             && path
                 .parent()
                 .and_then(|value| value.canonicalize().ok())
@@ -1041,7 +1044,7 @@ pub fn run_automatic_backup(app: &AppHandle) -> Result<Option<BackupInfo>, Conti
             .ok_or_else(|| ContinuityError::Invalid("pasta automática não configurada".into()))?,
     );
     fs::create_dir_all(&directory)?;
-    let target = directory.join(format!("CaixaNoControle_Automatico_{}.cncbak", epoch()));
+    let target = directory.join(format!("CaixaSimplesBratec_Automatico_{}.cncbak", epoch()));
     drop(connection);
     let info = match make_backup(app, &target, None, "AUTOMATIC") {
         Ok(info) => info,

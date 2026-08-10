@@ -21,14 +21,16 @@ pub fn run() {
                 .map_err(|error| -> Box<dyn std::error::Error> { Box::new(error) })?;
             application::continuity::finalize_startup(app.handle())
                 .map_err(|error| -> Box<dyn std::error::Error> { Box::new(error) })?;
-            tracing::info!("Caixa no Controle iniciado");
+            tracing::info!("CaixaSimples - Bratec iniciado");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             commands::database_status,
             commands::commercial_plans,
             commands::commercial_status,
+            commands::commercial_build_info,
             commands::commercial_create_checkout,
+            commands::commercial_activate_beta,
             commands::commercial_refresh_entitlement,
             commands::onboarding_status,
             commands::initial_configuration,
@@ -93,5 +95,5 @@ pub fn run() {
             commands::prepare_update
         ])
         .run(tauri::generate_context!())
-        .expect("erro ao executar o Caixa no Controle");
+        .expect("erro ao executar o CaixaSimples - Bratec");
 }

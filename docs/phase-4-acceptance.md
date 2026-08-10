@@ -1,6 +1,6 @@
 # Aceite técnico — Fase 4
 
-**Produto:** Caixa no Controle — Essencial 1.0  
+**Produto:** CaixaSimples - Bratec — Essencial 1.0
 **Data:** 04/08/2026  
 **Resultado:** aprovado — Fase 4 concluída em 100%
 
@@ -48,9 +48,9 @@
 
 ## Artefatos Windows
 
-- executável: `%LOCALAPPDATA%\\CaixaNoControle\\cargo-target\\release\\caixa-no-controle.exe`;
-- MSI: `%LOCALAPPDATA%\\CaixaNoControle\\cargo-target\\release\\bundle\\msi\\Caixa no Controle_0.1.0_x64_en-US.msi`;
-- NSIS: `%LOCALAPPDATA%\\CaixaNoControle\\cargo-target\\release\\bundle\\nsis\\Caixa no Controle_0.1.0_x64-setup.exe`.
+- executável: `%LOCALAPPDATA%\\CaixaNoControle\\cargo-target\\release\\caixasimples-bratec.exe`;
+- MSI: `%LOCALAPPDATA%\\CaixaNoControle\\cargo-target\\release\\bundle\\msi\\CaixaSimples - Bratec_0.1.0_x64_en-US.msi`;
+- NSIS: `%LOCALAPPDATA%\\CaixaNoControle\\cargo-target\\release\\bundle\\nsis\\CaixaSimples - Bratec_0.1.0_x64-setup.exe`.
 
 ## Fronteira da próxima fase
 

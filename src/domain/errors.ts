@@ -6,6 +6,8 @@ export function toUserMessage(reason: unknown): string {
   const message = raw.replace(/^(?:Error|TypeError|RangeError):\s*/i, "").trim();
 
   if (!message) return genericMessage;
+  const classified = message.match(/^(NETWORK_OFFLINE|SERVER_WAKING|SERVER_UNAVAILABLE|TIMEOUT|AUTH_ERROR|SUBSCRIPTION_ERROR|PAYMENT_ERROR):\s*(.+)$/s);
+  if (classified?.[2]) return classified[2];
   if (
     /__TAURI_INTERNALS__|cannot read properties of undefined.*invoke|comando não simulado/i.test(
       message,

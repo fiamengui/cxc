@@ -5,6 +5,7 @@ const schema = z.object({
   HOST: z.ipv4().default("127.0.0.1"),
   PORT: z.coerce.number().int().min(1).max(65535).default(8080),
   DATABASE_URL: z.string().min(1),
+  DATABASE_DIRECT_URL: z.string().min(1).optional(),
   DATABASE_SSL_MODE: z.enum(["disable", "verify-full"]).default("verify-full"),
   COMMERCIAL_PUBLIC_URL: z.string().url().startsWith("https://"),
   MERCADO_PAGO_ACCESS_TOKEN: z.string().min(20),
@@ -16,14 +17,25 @@ const schema = z.object({
   ENTITLEMENT_KEY_ID: z.string().regex(/^[a-zA-Z0-9._-]{3,64}$/),
   ALLOWED_APP_ORIGIN: z.string().url().startsWith("https://"),
   COMMERCIAL_ENVIRONMENT: z.enum(["sandbox", "production"]).default("sandbox"),
+  APP_RELEASE: z.string().regex(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/),
+  RELEASE_CHANNEL: z.enum(["development", "beta", "stable"]).default("development"),
+  BETA_MODE: z.stringbool().default(false),
+  BETA_MAX_CUSTOMERS: z.coerce.number().int().min(1).max(100).default(5),
+  BETA_ADMIN_TOKEN: z.string().min(32).optional(),
+  BETA_INVITE_PEPPER: z.string().min(32).optional(),
 }).superRefine((value, context) => {
   if (!value.ENTITLEMENT_PRIVATE_KEY_PATH && !value.ENTITLEMENT_PRIVATE_KEY_BASE64) context.addIssue({ code:"custom", path:["ENTITLEMENT_PRIVATE_KEY_PATH"], message:"Informe a chave privada por arquivo ou secret base64." });
+  if (value.BETA_MODE && !value.BETA_ADMIN_TOKEN) context.addIssue({ code:"custom", path:["BETA_ADMIN_TOKEN"], message:"Beta controlada exige token administrativo." });
+  if (value.BETA_MODE && !value.BETA_INVITE_PEPPER) context.addIssue({ code:"custom", path:["BETA_INVITE_PEPPER"], message:"Beta controlada exige pepper para os convites." });
   if (value.COMMERCIAL_ENVIRONMENT !== "production") return;
   if (!value.MERCADO_PAGO_ACCESS_TOKEN.startsWith("APP_USR-")) context.addIssue({ code:"custom", path:["MERCADO_PAGO_ACCESS_TOKEN"], message:"Produção exige credencial Mercado Pago de produção." });
   for (const key of ["MERCADO_PAGO_MONTHLY_PLAN_ID","MERCADO_PAGO_ANNUAL_PLAN_ID"] as const) {
     if (/replace|sandbox|test/i.test(value[key])) context.addIssue({ code:"custom", path:[key], message:"Produção não aceita identificador fictício ou sandbox." });
   }
+  if (value.MERCADO_PAGO_MONTHLY_PLAN_ID === value.MERCADO_PAGO_ANNUAL_PLAN_ID) context.addIssue({ code:"custom", path:["MERCADO_PAGO_ANNUAL_PLAN_ID"], message:"Os planos mensal e anual devem possuir identificadores distintos." });
   if (/example\.com|\.invalid|localhost|127\.0\.0\.1/i.test(value.COMMERCIAL_PUBLIC_URL)) context.addIssue({ code:"custom", path:["COMMERCIAL_PUBLIC_URL"], message:"Produção exige URL pública HTTPS real." });
+  if (value.RELEASE_CHANNEL === "development") context.addIssue({ code:"custom", path:["RELEASE_CHANNEL"], message:"Produção não aceita canal development." });
+  if (!value.DATABASE_DIRECT_URL) context.addIssue({ code:"custom", path:["DATABASE_DIRECT_URL"], message:"Produção exige conexão direta separada para migrations." });
 });
 
 export type Config = z.infer<typeof schema>;

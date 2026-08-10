@@ -144,7 +144,7 @@ export function HelpPage() {
           <Info icon={DatabaseBackup} title="Proteja seus dados" text="Mantenha backups em outro dispositivo e teste a restauração periodicamente." />
           <Info icon={ShieldCheck} title="Privacidade local" text="Os dados financeiros permanecem no computador; o diagnóstico não inclui o banco." />
           <Info icon={Keyboard} title="Acessibilidade" text="Use Tab e Shift+Tab para navegar, Enter para ativar e Esc para fechar diálogos." />
-          <p className="px-1 text-xs text-slate-500">Caixa no Controle v{applicationVersion} · BratecInfo</p>
+          <p className="px-1 text-xs text-slate-500">CaixaSimples - Bratec v{applicationVersion} · BratecInfo</p>
         </aside>
       </div>
     </section>

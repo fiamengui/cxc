@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0-beta.1 — 2026-08-10
+
+- adota a identidade visual CaixaSimples - Bratec, preservando identificadores persistidos necessários para upgrades e dados existentes;
+- inicia o canal beta controlado sobre a base estável 1.1.0, sem downgrade de versão;
+- atualiza aplicação, instaladores, manual, documentação, relatórios, backups e metadados visíveis;
+- regenera e valida visualmente o manual do usuário em DOCX e PDF;
+- mantém a migration comercial histórica e o nome interno do SQLite intactos por compatibilidade.
+
 ## 1.1.0 — 2026-08-07
 
 - migra novas vendas para assinatura Essencial mensal de R$ 9,90 e anual de R$ 99,90, preservando `.cnclic` apenas para clientes legados;

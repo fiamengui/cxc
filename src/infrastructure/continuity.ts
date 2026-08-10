@@ -46,10 +46,10 @@ export const createDiagnosticPackage = (path: string) => invoke<void>("create_di
 export const inspectUpdate = (path: string) => invoke<UpdateInfo>("inspect_update", { path });
 export const prepareUpdate = (path: string) => invoke<string>("prepare_update", { path });
 export const relaunchApplication = () => relaunch();
-export async function chooseLicense() { const value = await open({ multiple: false, filters: [{ name: "Licença Caixa no Controle", extensions: ["cnclic"] }] }); return typeof value === "string" ? value : null; }
-export async function chooseBackup() { const value = await open({ multiple: false, filters: [{ name: "Backup Caixa no Controle", extensions: ["cncbak"] }] }); return typeof value === "string" ? value : null; }
-export async function chooseBackupDestination() { const stamp=new Date().toISOString().slice(0,16).replaceAll(":","").replace("T","_"); return save({ defaultPath: `CaixaNoControle_${stamp}.cncbak`, filters: [{ name: "Backup Caixa no Controle", extensions: ["cncbak"] }] }); }
+export async function chooseLicense() { const value = await open({ multiple: false, filters: [{ name: "Licença CaixaSimples - Bratec", extensions: ["cnclic"] }] }); return typeof value === "string" ? value : null; }
+export async function chooseBackup() { const value = await open({ multiple: false, filters: [{ name: "Backup CaixaSimples - Bratec", extensions: ["cncbak"] }] }); return typeof value === "string" ? value : null; }
+export async function chooseBackupDestination() { const stamp=new Date().toISOString().slice(0,16).replaceAll(":","").replace("T","_"); return save({ defaultPath: `CaixaSimplesBratec_${stamp}.cncbak`, filters: [{ name: "Backup CaixaSimples - Bratec", extensions: ["cncbak"] }] }); }
 export async function chooseBackupDirectory() { const value = await open({ directory: true, multiple: false }); return typeof value === "string" ? value : null; }
-export async function chooseDiagnosticDestination() { return save({ defaultPath: `Diagnostico_CaixaNoControle_${new Date().toISOString().slice(0,10)}.cncdiag`, filters: [{ name: "Diagnóstico Caixa no Controle", extensions: ["cncdiag"] }] }); }
-export async function chooseUpdate() { const value = await open({ multiple: false, filters: [{ name: "Atualização Caixa no Controle", extensions: ["cncupd"] }] }); return typeof value === "string" ? value : null; }
+export async function chooseDiagnosticDestination() { return save({ defaultPath: `Diagnostico_CaixaSimplesBratec_${new Date().toISOString().slice(0,10)}.cncdiag`, filters: [{ name: "Diagnóstico CaixaSimples - Bratec", extensions: ["cncdiag"] }] }); }
+export async function chooseUpdate() { const value = await open({ multiple: false, filters: [{ name: "Atualização CaixaSimples - Bratec", extensions: ["cncupd"] }] }); return typeof value === "string" ? value : null; }
 export async function installPreparedUpdate(installerPath: string) { await openPath(installerPath); await exit(0); }
