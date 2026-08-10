@@ -1,0 +1,29 @@
+{
+  "name": "caixa-no-controle-commercial-backend",
+  "private": true,
+  "version": "1.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "migrate": "node dist/src/migrate.js",
+    "provision:plans": "node scripts/provision-mercado-pago-plans.mjs",
+    "start": "node dist/src/server.js",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test tests/**/*.test.ts"
+  },
+  "dependencies": {
+    "fastify": "5.11.2",
+    "pg": "8.16.3",
+    "zod": "4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.1",
+    "@types/pg": "8.15.5",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2"
+  }
+}

@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_DB: cnc_commercial
+      POSTGRES_USER: cnc
+      POSTGRES_PASSWORD: validation-only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cnc -d cnc_commercial"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data
+  backend:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 8080
+      DATABASE_URL: postgresql://cnc:validation-only@postgres:5432/cnc_commercial
+      DATABASE_SSL_MODE: disable
+      COMMERCIAL_PUBLIC_URL: https://commercial.localhost
+      ALLOWED_APP_ORIGIN: https://app.localhost
+      COMMERCIAL_ENVIRONMENT: sandbox
+      MERCADO_PAGO_ACCESS_TOKEN: TEST-validation-only-not-a-credential
+      MERCADO_PAGO_WEBHOOK_SECRET: validation-only-secret
+      MERCADO_PAGO_MONTHLY_PLAN_ID: validation-monthly
+      MERCADO_PAGO_ANNUAL_PLAN_ID: validation-annual
+      ENTITLEMENT_PRIVATE_KEY_PATH: /run/secrets/entitlement.pem
+      ENTITLEMENT_KEY_ID: cnc-commercial-validation
+    volumes:
+      - type: bind
+        source: ${ENTITLEMENT_VALIDATION_KEY_PATH}
+        target: /run/secrets/entitlement.pem
+        read_only: true
+    ports:
+      - "127.0.0.1:18080:8080"

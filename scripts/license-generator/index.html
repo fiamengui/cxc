@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width">
+  <title>BratecInfo · Licenças</title>
+  <style>
+    body{font:15px system-ui;background:#f5f7fb;color:#172033;margin:0}main{max-width:1050px;margin:auto;padding:32px}section{background:white;border:1px solid #dce2ec;border-radius:14px;padding:20px;margin-bottom:18px}h1,h2{margin-top:0}form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}label{font-weight:650}input,select,textarea,button{box-sizing:border-box;width:100%;padding:10px;border:1px solid #bcc7d8;border-radius:8px;font:inherit}textarea{min-height:74px}.wide{grid-column:1/-1}button{background:#2563eb;color:white;font-weight:700;cursor:pointer}table{border-collapse:collapse;width:100%}th,td{text-align:left;border-bottom:1px solid #e5e9f0;padding:9px;font-size:13px}.message{white-space:pre-wrap;font-weight:650}@media(max-width:700px){form{grid-template-columns:1fr}.wide{grid-column:auto}}
+  </style>
+</head>
+<body><main>
+  <h1>Emissor de licenças BratecInfo</h1>
+  <p>Ferramenta administrativa local. A chave privada não é exibida nem enviada pela interface.</p>
+  <section><h2>Emitir ou reemitir</h2>
+    <form id="form">
+      <label>Cliente<input name="customerName" required></label>
+      <label>Código da instalação<input name="installationId" placeholder="CNC-0000-0000-0000" required></label>
+      <label>CPF/CNPJ opcional<input name="customerDocumentOptional"></label>
+      <label>E-mail opcional<input name="customerEmailOptional" type="email"></label>
+      <label>Produto<input name="product" value="CAIXA_NO_CONTROLE" readonly></label>
+      <label>Número de dispositivos<input name="deviceLimit" type="number" value="1" readonly></label>
+      <label>Edição<select name="edition"><option>ESSENTIAL</option><option>PROFESSIONAL</option><option>BUSINESS</option></select></label>
+      <label>Versão principal<input name="authorizedMajorVersion" type="number" min="1" value="1" required></label>
+      <label class="wide">Feature flags<input name="features" value="financial_core,contacts,catalog,sales,reports,backup,goals"></label>
+      <label class="wide">Reemitir licença (ID opcional)<input name="reissueOf" placeholder="CNC-00000001"></label>
+      <label class="wide">Observações<textarea name="notes"></textarea></label>
+      <button class="wide">Gerar arquivo .cnclic</button>
+    </form><p id="message" class="message" role="status"></p>
+  </section>
+  <section><h2>Registro administrativo</h2><div style="overflow:auto"><table><thead><tr><th>ID</th><th>Cliente</th><th>Instalação</th><th>Edição</th><th>Status</th><th>Emissão</th><th>Hash</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+</main><script>
+  const form=document.querySelector('#form'),message=document.querySelector('#message'),rows=document.querySelector('#rows');
+  const escapeHtml=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  async function refresh(){
+    const list=await fetch('/api/licenses').then(response=>response.json());
+    rows.innerHTML=list.slice().reverse().map(item=>`<tr><td>${escapeHtml(item.licenseId)}</td><td>${escapeHtml(item.customerName)}</td><td>${escapeHtml(item.installationId)}</td><td>${escapeHtml(item.edition)}</td><td><select data-id="${escapeHtml(item.licenseId)}">${['ACTIVE','REISSUED','REVOKED_ADMINISTRATIVELY'].map(status=>`<option ${status===item.status?'selected':''}>${status}</option>`).join('')}</select></td><td>${new Date(item.issuedAt).toLocaleString('pt-BR')}</td><td title="${escapeHtml(item.fileHashSha256)}">${escapeHtml(item.fileHashSha256.slice(0,12))}…</td></tr>`).join('');
+    rows.querySelectorAll('select').forEach(select=>select.onchange=async()=>{await fetch('/api/licenses/'+encodeURIComponent(select.dataset.id),{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({status:select.value})});refresh()});
+  }
+  form.onsubmit=async event=>{event.preventDefault();message.textContent='Gerando…';const data=Object.fromEntries(new FormData(form));data.authorizedMajorVersion=Number(data.authorizedMajorVersion);const response=await fetch('/api/licenses',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)});const result=await response.json();message.textContent=response.ok?`Licença ${result.licenseId} gerada em:\n${result.outputPath}\nSHA-256: ${result.fileHashSha256}`:result.error;if(response.ok)refresh()};
+  refresh();
+</script></body></html>

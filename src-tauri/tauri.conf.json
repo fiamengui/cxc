@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Caixa no Controle",
+  "version": "1.1.0",
+  "identifier": "br.com.bratecinfo.caixanocontrole",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Caixa no Controle",
+        "width": 1440,
+        "height": 920,
+        "minWidth": 1024,
+        "minHeight": 720
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost http://127.0.0.1:1420 ws://127.0.0.1:1420; style-src 'self' 'unsafe-inline'; img-src 'self' asset: http://asset.localhost; font-src 'self' data:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "publisher": "BratecInfo",
+    "copyright": "Copyright © 2026 BratecInfo",
+    "category": "Finance",
+    "shortDescription": "Gestão financeira simples para pequenos negócios.",
+    "longDescription": "Aplicativo desktop offline para controlar caixa, contas, vendas, metas, relatórios, licenças e backups.",
+    "license": "Proprietary",
+    "licenseFile": "resources/EULA.rtf",
+    "resources": {
+      "resources/manual/Manual-do-Usuario-Caixa-no-Controle.pdf": "manual/Manual-do-Usuario-Caixa-no-Controle.pdf"
+    },
+    "icon": ["icons/icon.ico", "icons/icon.png"],
+    "windows": {
+      "allowDowngrades": false,
+      "digestAlgorithm": "sha256",
+      "webviewInstallMode": { "type": "offlineInstaller", "silent": true },
+      "wix": {
+        "language": "pt-BR",
+        "upgradeCode": "d732aef3-c0cf-5a3f-9a64-7b265d9e43b9"
+      },
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "uninstallerIcon": "icons/icon.ico",
+        "installMode": "currentUser",
+        "languages": ["PortugueseBR"],
+        "displayLanguageSelector": false,
+        "compression": "lzma",
+        "startMenuFolder": "BratecInfo",
+        "installerHooks": "installer/hooks.nsh"
+      }
+    }
+  }
+}

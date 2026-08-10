@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: cnc-commercial-bratecinfo-sandbox
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: commercial-backend
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_SSL_MODE
+        value: verify-full
+      - key: COMMERCIAL_PUBLIC_URL
+        value: https://cnc-commercial-bratecinfo-sandbox.onrender.com
+      - key: ALLOWED_APP_ORIGIN
+        value: https://cnc-commercial-bratecinfo-sandbox.onrender.com
+      - key: COMMERCIAL_ENVIRONMENT
+        value: sandbox
+      - key: ENTITLEMENT_KEY_ID
+        value: cnc-validation-2026-01
+      - key: MERCADO_PAGO_MONTHLY_PLAN_ID
+        value: 99bc158d58a44025a9aeef399b60e124
+      - key: MERCADO_PAGO_ANNUAL_PLAN_ID
+        value: d7de8c0b645c400d8a961d29b15efafc
+      - key: MERCADO_PAGO_WEBHOOK_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: MERCADO_PAGO_ACCESS_TOKEN
+        sync: false
+      - key: ENTITLEMENT_PRIVATE_KEY_BASE64
+        sync: false
