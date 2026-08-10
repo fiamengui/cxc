@@ -74,8 +74,10 @@ export class MercadoPagoProvider implements PaymentProvider {
 
   private paymentSnapshot(resource: JsonRecord, eventId: string, eventType: string): ProviderSubscriptionSnapshot {
     const metadata = resource.metadata && typeof resource.metadata === "object" ? object(resource.metadata) : {};
+    const pointOfInteraction = resource.point_of_interaction && typeof resource.point_of_interaction === "object" ? object(resource.point_of_interaction) : {};
+    const transactionData = pointOfInteraction.transaction_data && typeof pointOfInteraction.transaction_data === "object" ? object(pointOfInteraction.transaction_data) : {};
     const externalReference = string(resource.external_reference);
-    const providerSubscriptionId = string(metadata.preapproval_id) ?? string(resource.subscription_id);
+    const providerSubscriptionId = string(metadata.preapproval_id) ?? string(resource.subscription_id) ?? string(transactionData.subscription_id);
     const paymentId = resource.id === undefined ? null : String(resource.id);
     if (!externalReference || !providerSubscriptionId || !paymentId) throw new Error("Pagamento do provedor sem vínculo de assinatura.");
     return { providerEventId: eventId, providerSubscriptionId, externalReference, status: mapStatus(resource.status), amountCents: cents(resource.transaction_amount), currentPeriodStart: null, currentPeriodEnd: null, paidAt: date(resource.date_approved), providerPaymentId: paymentId, eventType };
