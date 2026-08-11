@@ -9,6 +9,7 @@ $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $root
 $version = (Get-Content (Join-Path $root "package.json") -Raw | ConvertFrom-Json).version
+$bundleVersion = (Get-Content (Join-Path $root "src-tauri\tauri.conf.json") -Raw | ConvertFrom-Json).version
 
 if (-not $SkipQuality) {
   npm run lint
@@ -37,8 +38,8 @@ if (-not $SkipBuild) {
 }
 
 $bundle = Join-Path $root "src-tauri\target\release\bundle"
-$nsis = Get-ChildItem -LiteralPath (Join-Path $bundle "nsis") -Filter "*$version*setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-$msi = Get-ChildItem -LiteralPath (Join-Path $bundle "msi") -Filter "*$version*.msi" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$nsis = Get-ChildItem -LiteralPath (Join-Path $bundle "nsis") -Filter "*$bundleVersion*setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$msi = Get-ChildItem -LiteralPath (Join-Path $bundle "msi") -Filter "*$bundleVersion*.msi" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 if (-not $nsis -or -not $msi) { throw "Instaladores NSIS/MSI não encontrados." }
 
 if (-not $SkipSmoke) {

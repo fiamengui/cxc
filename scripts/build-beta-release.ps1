@@ -10,11 +10,23 @@ $uri = $null
 if (-not [Uri]::TryCreate($CommercialApiUrl, [UriKind]::Absolute, [ref]$uri) -or $uri.Scheme -ne "https") {
   throw "CommercialApiUrl deve ser uma URL HTTPS absoluta."
 }
-if ($uri.UserInfo -or $uri.Query -or $uri.Fragment -or $uri.Host -in @("localhost", "127.0.0.1") -or $uri.Host.EndsWith(".invalid") -or $uri.Host -match "sandbox|test") {
-  throw "A beta de produção não aceita credenciais na URL, host local, fictício, sandbox ou teste."
+if ($uri.UserInfo -or $uri.Query -or $uri.Fragment -or $uri.Host -in @("localhost", "127.0.0.1") -or $uri.Host.EndsWith(".invalid")) {
+  throw "A beta de produção não aceita credenciais na URL, host local ou fictício."
 }
 
-$env:CNC_COMMERCIAL_API_URL = $uri.AbsoluteUri.TrimEnd("/")
+$commercialBaseUrl = $uri.AbsoluteUri.TrimEnd("/")
+if ($uri.Host -match "sandbox|test") {
+  try {
+    $health = Invoke-RestMethod -Uri "$commercialBaseUrl/health" -Method Get -TimeoutSec 120
+  } catch {
+    throw "O host legado só pode ser usado após validar o endpoint HTTPS: $($_.Exception.Message)"
+  }
+  if ($health.status -ne "ok" -or $health.environment -ne "production" -or $health.releaseChannel -ne "beta" -or $health.version -ne "1.2.0-beta.1") {
+    throw "O host legado não comprovou status ok, ambiente production, canal beta e versão 1.2.0-beta.1."
+  }
+}
+
+$env:CNC_COMMERCIAL_API_URL = $commercialBaseUrl
 $env:CNC_BUILD_ENVIRONMENT = "Production Beta"
 $env:CNC_RELEASE_CHANNEL = "beta"
 $env:CNC_BUILD_ID = [DateTime]::UtcNow.ToString("yyyyMMdd.HHmmss")
