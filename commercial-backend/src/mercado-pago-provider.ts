@@ -45,18 +45,16 @@ export class MercadoPagoProvider implements PaymentProvider {
 
   async createCheckout(input: CheckoutInput): Promise<CheckoutResult> { return this.createSubscription(input); }
   async createSubscription(input: CheckoutInput): Promise<CheckoutResult> {
+    const planId = input.plan.billingCycle === "MONTHLY"
+      ? this.config.MERCADO_PAGO_MONTHLY_PLAN_ID
+      : this.config.MERCADO_PAGO_ANNUAL_PLAN_ID;
     const response = await this.request("/preapproval", { method: "POST", body: JSON.stringify({
+      preapproval_plan_id: planId,
       payer_email: input.customerEmail,
       external_reference: input.subscriptionId,
       back_url: `${this.config.COMMERCIAL_PUBLIC_URL}/checkout/return`,
+      notification_url: `${this.config.COMMERCIAL_PUBLIC_URL}/v1/webhooks/mercado-pago?source_news=webhooks`,
       status: "pending",
-      reason: `${input.plan.name} - ${input.plan.billingCycle === "MONTHLY" ? "mensal" : "anual"}`,
-      auto_recurring: {
-        frequency: input.plan.billingCycle === "MONTHLY" ? 1 : 12,
-        frequency_type: "months",
-        transaction_amount: input.plan.amountCents / 100,
-        currency_id: "BRL",
-      },
     }) });
     const providerSubscriptionId = string(response.id);
     const checkoutUrl = string(response.init_point);
