@@ -36,7 +36,7 @@ Configurar também `NODE_ENV=production`, `HOST=0.0.0.0`, `COMMERCIAL_ENVIRONMEN
 
 1. criar o projeto Neon, guardar a connection string como Secret e executar `npm run migrate` pela imagem aprovada;
 2. publicar a imagem e validar HTTPS/healthcheck;
-3. criar ou reconciliar os planos recorrentes no Mercado Pago com `npm run provision:plans` dentro de `commercial-backend`; o script é idempotente por `external_reference` e valida preço, frequência e URL de retorno;
+3. criar ou reconciliar as referências recorrentes no Mercado Pago com `npm run provision:plans` dentro de `commercial-backend`; o script é idempotente por `external_reference` e valida preço, frequência e URL de retorno. O checkout hospedado usa os mesmos dados pelo catálogo interno, sem associar `preapproval_plan_id`, para não coletar nem tokenizar cartão;
 4. inserir IDs, token e webhook secret no secret manager;
 5. registrar `https://<host>/v1/webhooks/mercado-pago` no painel Mercado Pago;
 6. executar a matriz sandbox e guardar evidências sem dados de cartão;

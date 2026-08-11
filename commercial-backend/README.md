@@ -4,7 +4,7 @@ Serviço independente do instalador. Mantém preços, clientes, instalações, a
 
 1. Crie PostgreSQL separado e execute migrations versionadas com `npm run migrate` (não aplique SQL manualmente em produção).
 2. Copie `.env.example` para um gerenciador de segredos; não versione `.env`.
-3. Crie no Mercado Pago os planos recorrentes mensal de R$ 9,90 e anual de R$ 99,90 e configure seus IDs.
+3. Crie no Mercado Pago as referências recorrentes mensal de R$ 9,90 e anual de R$ 99,90 e configure seus IDs para reconciliação. O checkout hospedado envia preço e periodicidade pelo catálogo do servidor, sem `preapproval_plan_id`, pois a associação direta exige tokenização de cartão.
 4. Configure o webhook HTTPS em `/v1/webhooks/mercado-pago`.
 5. Execute `npm ci`, `npm test`, `npm run build` e `npm start`.
 
