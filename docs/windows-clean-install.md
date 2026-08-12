@@ -12,3 +12,5 @@
 10. Registre versão do Windows, hashes, capturas e resultado no checklist final.
 
 O script `scripts/installer-smoke.ps1` automatiza a instalação silenciosa NSIS, preservação padrão e desinstalação, além da extração administrativa do MSI. A interação visual e a exclusão deliberada de dados continuam sendo conferidas na máquina limpa.
+
+Em Windows Pro/Enterprise, habilite uma vez o recurso `Containers-DisposableClientVM` em um PowerShell como Administrador e reinicie quando solicitado. Depois execute `scripts/start-windows-sandbox-smoke.ps1`. Ele abre um Windows descartável, monta o projeto somente para leitura, confere os hashes, instala e inicia o aplicativo, valida o manual embarcado, extrai o MSI, desinstala e grava `output/windows-sandbox-smoke/windows-sandbox-smoke-result.json` no computador host.
