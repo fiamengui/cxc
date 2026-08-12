@@ -14,14 +14,24 @@
 
 ## Infraestrutura obrigatória antes da venda
 
-- [ ] PostgreSQL de produção implantado e migrado;
-- [ ] backend publicado em domínio HTTPS real;
-- [ ] planos mensal/anual criados no Mercado Pago e IDs configurados;
-- [ ] webhook de produção registrado e testado ponta a ponta;
-- [ ] token, webhook secret e chave privada guardados em secret manager/KMS;
-- [ ] binário recompilado com `CNC_COMMERCIAL_API_URL` real;
+- [x] PostgreSQL Neon de produção implantado, migrado e respondendo em `/health/database`;
+- [x] backend publicado em domínio HTTPS gerenciado pelo Render e respondendo em `/health`;
+- [x] referências recorrentes mensal/anual criadas no Mercado Pago e IDs configurados para reconciliação;
+- [ ] webhook de produção recebido e validado ponta a ponta a partir de um pagamento hospedado concluído;
+- [x] token, webhook secret e chave privada injetados como Secrets do Render, sem inclusão na imagem ou no repositório;
+- [x] binário recompilado com `CNC_COMMERCIAL_API_URL` apontando para a API HTTPS publicada;
 - [ ] certificado Authenticode instalado e executável/MSI/NSIS assinados;
 - [ ] smoke test em Windows limpo com pagamento sandbox e renovação offline;
 - [ ] hashes do pacote final publicado conferidos após assinatura.
 
-Resultado em 10 de agosto de 2026: **código da beta aprovado; implantação e release final bloqueadas somente pelos itens externos acima e pelo smoke test em Windows limpo**.
+## Evidências de 12 de agosto de 2026
+
+- deploy Render `ea28788` concluído com sucesso;
+- API e conexão PostgreSQL retornando `ok`;
+- URL HTTPS publicada encontrada no executável compilado;
+- matriz imediata Mercado Pago repetida: `pending`, `authorized`, recusa e `cancelled`;
+- 20/20 testes do backend, lint, tipagem e build aprovados;
+- instaladores beta gerados e hashes atuais conferidos, ainda sem assinatura Authenticode;
+- renovação, reembolso e chargeback continuam cobertos por testes, mas a evidência externa depende respectivamente de fatura futura, pagamento capturado e evento emitido pelo provedor.
+
+Resultado em 12 de agosto de 2026: **infraestrutura beta gratuita operacional. A venda pública permanece bloqueada pelo webhook ponta a ponta, Authenticode, smoke test em Windows realmente limpo e hashes posteriores à assinatura**. O plano gratuito do Render pode suspender por inatividade e não oferece SLA comercial.

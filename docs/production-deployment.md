@@ -46,3 +46,5 @@ Configurar também `NODE_ENV=production`, `HOST=0.0.0.0`, `COMMERCIAL_ENVIRONMEN
 10. validar em Windows limpo antes da publicação.
 
 Uma release que não apresente assinatura Authenticode `Valid` ou que tenha sido compilada com host local/fictício é rejeitada pelos scripts.
+
+Para auditar a beta gratuita sem copiar Secrets do Render para a máquina local, execute `scripts/verify-beta-deployment.ps1`. O script confere HTTPS, saúde da API e do banco, hashes dos instaladores e estado Authenticode, distinguindo explicitamente beta controlada de venda pública.
