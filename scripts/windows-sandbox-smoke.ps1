@@ -2,6 +2,20 @@ $ErrorActionPreference = "Stop"
 
 $workspace = "C:\Workspace"
 $output = "C:\SmokeOutput"
+New-Item -ItemType Directory -Force -Path $output | Out-Null
+Start-Transcript -Path (Join-Path $output "windows-sandbox-smoke.log") -Append | Out-Null
+trap {
+  [ordered]@{
+    testedAtUtc = [DateTime]::UtcNow.ToString("o")
+    outcome = "failed"
+    error = $_.Exception.Message
+  } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $output "windows-sandbox-smoke-result.json") -Encoding UTF8
+  try { Stop-Transcript | Out-Null } catch {}
+  Start-Sleep -Seconds 10
+  Stop-Computer -Force
+  break
+}
+
 $version = (Get-Content (Join-Path $workspace "package.json") -Raw | ConvertFrom-Json).version
 $release = Join-Path $workspace "dist\releases\$version"
 $nsis = Join-Path $release "CaixaSimples-Bratec-$version-Setup.exe"
@@ -10,7 +24,7 @@ $checksums = Join-Path $release "SHA256SUMS.txt"
 $installRoot = "C:\Smoke\CaixaSimples"
 $msiRoot = "C:\Smoke\Msi"
 
-New-Item -ItemType Directory -Force -Path $output, $installRoot, $msiRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $installRoot, $msiRoot | Out-Null
 
 foreach ($path in @($nsis, $msi, $checksums)) {
   if (-not (Test-Path -LiteralPath $path)) { throw "Arquivo obrigatório ausente: $path" }
@@ -56,6 +70,7 @@ if ($uninstall.ExitCode -ne 0) { throw "Desinstalação NSIS retornou $($uninsta
 
 [ordered]@{
   testedAtUtc = [DateTime]::UtcNow.ToString("o")
+  outcome = "passed"
   windows = (Get-CimInstance Win32_OperatingSystem).Caption
   version = $version
   hashes = "passed"
@@ -66,4 +81,6 @@ if ($uninstall.ExitCode -ne 0) { throw "Desinstalação NSIS retornou $($uninsta
   nsisUninstall = "passed"
 } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $output "windows-sandbox-smoke-result.json") -Encoding UTF8
 
+Stop-Transcript | Out-Null
+Start-Sleep -Seconds 10
 Stop-Computer -Force

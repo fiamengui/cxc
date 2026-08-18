@@ -8,9 +8,11 @@ if (-not $sandbox) {
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $output = Join-Path $root "output\windows-sandbox-smoke"
 New-Item -ItemType Directory -Force -Path $output | Out-Null
+$mappedOutput = Join-Path ([IO.Path]::GetTempPath()) "caixasimples-bratec-sandbox-smoke-$([guid]::NewGuid().ToString('N'))"
+New-Item -ItemType Directory -Force -Path $mappedOutput | Out-Null
 
 $escapedRoot = [Security.SecurityElement]::Escape($root)
-$escapedOutput = [Security.SecurityElement]::Escape($output)
+$escapedOutput = [Security.SecurityElement]::Escape($mappedOutput)
 $configuration = @"
 <Configuration>
   <MappedFolders>
@@ -36,5 +38,23 @@ $configuration = @"
 
 $configPath = Join-Path $output "caixasimples-clean-smoke.wsb"
 $configuration | Set-Content -LiteralPath $configPath -Encoding UTF8
-Start-Process -FilePath $sandbox.Source -ArgumentList "`"$configPath`""
-Write-Host "Windows Sandbox iniciado. O resultado será salvo em $output."
+$sandboxProcess = Start-Process -FilePath $sandbox.Source -ArgumentList "`"$configPath`"" -PassThru
+Write-Host "Windows Sandbox iniciado. Aguardando o smoke test isolado."
+$mappedResult = Join-Path $mappedOutput "windows-sandbox-smoke-result.json"
+$deadline = (Get-Date).AddMinutes(10)
+$graceDeadline = (Get-Date).AddSeconds(20)
+while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $mappedResult)) {
+  $running = Get-Process WindowsSandbox -ErrorAction SilentlyContinue
+  if (-not $running -and $sandboxProcess.HasExited -and (Get-Date) -ge $graceDeadline) { break }
+  Start-Sleep -Seconds 2
+}
+
+Get-ChildItem -LiteralPath $mappedOutput -File | Copy-Item -Destination $output -Force
+$resultPath = Join-Path $output "windows-sandbox-smoke-result.json"
+if (-not (Test-Path -LiteralPath $resultPath)) {
+  $exitCode = if ($sandboxProcess.HasExited) { $sandboxProcess.ExitCode } else { "ainda em execução" }
+  throw "O Windows Sandbox encerrou sem gerar resultado (launcher: $exitCode). Consulte windows-sandbox-smoke.log, se disponível."
+}
+$result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+if ($result.outcome -ne "passed") { throw "Smoke test isolado falhou: $($result.error)" }
+Write-Host "Resultado copiado para $resultPath."
