@@ -32,6 +32,7 @@
 - matriz imediata Mercado Pago repetida: `pending`, `authorized`, recusa e `cancelled`;
 - 20/20 testes do backend, lint, tipagem e build aprovados;
 - instaladores beta gerados e hashes atuais conferidos, ainda sem assinatura Authenticode;
+- smoke isolado de instalação aprovado em Windows 11 Enterprise descartável em 19 de agosto de 2026: hashes, NSIS, inicialização limpa, manual embarcado, extração MSI e desinstalação;
 - renovação, reembolso e chargeback continuam cobertos por testes, mas a evidência externa depende respectivamente de fatura futura, pagamento capturado e evento emitido pelo provedor.
 
 Resultado em 12 de agosto de 2026: **infraestrutura beta gratuita operacional. A venda pública permanece bloqueada pelo webhook ponta a ponta, Authenticode, smoke test em Windows realmente limpo e hashes posteriores à assinatura**. O plano gratuito do Render pode suspender por inatividade e não oferece SLA comercial.

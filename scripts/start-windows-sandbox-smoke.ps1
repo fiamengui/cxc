@@ -44,17 +44,19 @@ $mappedResult = Join-Path $mappedOutput "windows-sandbox-smoke-result.json"
 $deadline = (Get-Date).AddMinutes(10)
 $graceDeadline = (Get-Date).AddSeconds(20)
 while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $mappedResult)) {
-  $running = Get-Process WindowsSandbox -ErrorAction SilentlyContinue
+  $running = Get-Process -ErrorAction SilentlyContinue | Where-Object {
+    $_.ProcessName -in @("WindowsSandbox", "WindowsSandboxRemoteSession", "WindowsSandboxServer", "vmmemWindowsSandbox")
+  }
   if (-not $running -and $sandboxProcess.HasExited -and (Get-Date) -ge $graceDeadline) { break }
   Start-Sleep -Seconds 2
 }
 
+if (-not (Test-Path -LiteralPath $mappedResult)) {
+  $exitCode = if ($sandboxProcess.HasExited) { $sandboxProcess.ExitCode } else { "ainda em execução" }
+  throw "O Windows Sandbox encerrou sem gerar resultado (launcher: $exitCode). Consulte a pasta temporária $mappedOutput."
+}
 Get-ChildItem -LiteralPath $mappedOutput -File | Copy-Item -Destination $output -Force
 $resultPath = Join-Path $output "windows-sandbox-smoke-result.json"
-if (-not (Test-Path -LiteralPath $resultPath)) {
-  $exitCode = if ($sandboxProcess.HasExited) { $sandboxProcess.ExitCode } else { "ainda em execução" }
-  throw "O Windows Sandbox encerrou sem gerar resultado (launcher: $exitCode). Consulte windows-sandbox-smoke.log, se disponível."
-}
 $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
 if ($result.outcome -ne "passed") { throw "Smoke test isolado falhou: $($result.error)" }
 Write-Host "Resultado copiado para $resultPath."
